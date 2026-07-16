@@ -12,7 +12,7 @@ test("loads the Optiq shell and main heading", async ({ page }) => {
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Turn educational visuals into accessible lessons",
+      name: "Make visual lessons accessible.",
     }),
   ).toBeVisible();
   expect(browserErrors).toEqual([]);

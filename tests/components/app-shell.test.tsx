@@ -10,7 +10,7 @@ describe("AppShell", () => {
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
     expect(headings[0]).toHaveAccessibleName(
-      "Turn educational visuals into accessible lessons",
+      "Make visual lessons accessible.",
     );
 
     expect(
@@ -27,5 +27,20 @@ describe("AppShell", () => {
 
     expect(screen.getByLabelText("Image file")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Analyze image" })).toBeDisabled();
+    expect(
+      screen.getByText("No file is sent in this preview."),
+    ).toBeInTheDocument();
+  });
+
+  it("communicates the real workflow and teacher-review boundary", () => {
+    render(<AppShell />);
+
+    expect(
+      screen.getByRole("list", { name: "Lesson creation progress" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Teacher review required")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Critical uncertainties must be resolved before/),
+    ).toBeInTheDocument();
   });
 });

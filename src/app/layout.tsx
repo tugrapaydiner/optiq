@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Optiq | Accessible educational visuals",
+  title: "Optiq | Make visual lessons accessible",
   description:
-    "Turn charts and process diagrams into teacher-reviewed accessible lessons.",
+    "Turn charts and process diagrams into accessible experiences reviewed by educators.",
 };
 
 export const viewport: Viewport = {
