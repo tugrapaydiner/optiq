@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AppShell } from "../../src/components/app-shell";
@@ -30,7 +30,7 @@ describe("AppShell", () => {
       screen.getByRole("button", { name: "Analyze source" }),
     ).toBeDisabled();
     expect(
-      screen.getByText("Analysis is unavailable in this static preview."),
+      screen.getByText("Preview only — analysis is not connected yet."),
     ).toBeInTheDocument();
   });
 
@@ -40,9 +40,11 @@ describe("AppShell", () => {
     expect(
       screen.getByRole("list", { name: "Lesson creation progress" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Teacher review is required.")).toBeInTheDocument();
     expect(
-      screen.getByText(/Critical uncertainties must be resolved/),
+      screen.getByText("Review required before export."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Resolve uncertain details first/),
     ).toBeInTheDocument();
   });
 
@@ -55,9 +57,33 @@ describe("AppShell", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("img")).toHaveLength(4);
+    expect(document.querySelector(".brand-logo")).toBeInTheDocument();
 
     for (const link of screen.getAllByRole("link")) {
       expect(link.getAttribute("href")).toMatch(/^#/);
     }
+
+    const primaryNavigation = screen.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    const primaryDestinations = within(primaryNavigation)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+
+    expect(new Set(primaryDestinations).size).toBe(primaryDestinations.length);
+    for (const destination of primaryDestinations) {
+      expect(
+        document.querySelector(destination ?? "missing"),
+      ).toBeInTheDocument();
+    }
+
+    const mobileNavigation = screen.getByRole("navigation", {
+      name: "Mobile navigation",
+    });
+    const mobileDestinations = within(mobileNavigation)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+
+    expect(new Set(mobileDestinations).size).toBe(mobileDestinations.length);
   });
 });
