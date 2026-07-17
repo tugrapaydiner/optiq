@@ -118,13 +118,37 @@ export function SiteFooter() {
   );
 }
 
-function PageClose({ href, label }: { href: string; label: string }) {
+type PageDestination = {
+  href: string;
+  label: string;
+};
+
+function PageClose({
+  next,
+  previous,
+}: {
+  next?: PageDestination;
+  previous?: PageDestination;
+}) {
   return (
-    <nav aria-label="Continue" className="page-close">
+    <nav aria-label="Page navigation" className="page-close">
       <div className="section-shell page-close-inner">
-        <TransitionLink className="page-close-link" href={href}>
-          Next: {label}
-        </TransitionLink>
+        {previous ? (
+          <TransitionLink
+            className="page-close-link page-close-link-previous"
+            href={previous.href}
+          >
+            ← Previous: {previous.label}
+          </TransitionLink>
+        ) : null}
+        {next ? (
+          <TransitionLink
+            className="page-close-link page-close-link-next"
+            href={next.href}
+          >
+            Next: {next.label} →
+          </TransitionLink>
+        ) : null}
       </div>
     </nav>
   );
@@ -253,7 +277,10 @@ export function ProductPageShell() {
           </div>
         </section>
       </div>
-      <PageClose href="/how-it-works" label="How it works" />
+      <PageClose
+        next={{ href: "/how-it-works", label: "How it works" }}
+        previous={{ href: "/", label: "Home" }}
+      />
     </main>
   );
 }
@@ -282,7 +309,7 @@ export function HowItWorksPageShell() {
     <main className="information-page" id="main-content" tabIndex={-1}>
       <div className="information-content">
         <section aria-labelledby="how-title" className="page-intro how-intro">
-          <div className="section-shell">
+          <div className="section-shell page-intro-split">
             <h1 id="how-title">
               <span>Four deliberate stages.</span>{" "}
               <span className="muted-heading">One accountable path.</span>
@@ -321,7 +348,10 @@ export function HowItWorksPageShell() {
         </section>
       </div>
 
-      <PageClose href="/accessibility" label="Accessibility" />
+      <PageClose
+        next={{ href: "/accessibility", label: "Accessibility" }}
+        previous={{ href: "/product", label: "Product" }}
+      />
     </main>
   );
 }
@@ -334,7 +364,7 @@ export function AccessibilityPageShell() {
           aria-labelledby="accessibility-title"
           className="page-intro accessibility-intro"
         >
-          <div className="section-shell accessibility-intro-inner">
+          <div className="section-shell accessibility-intro-inner page-intro-split">
             <h1 id="accessibility-title">
               <span>Access starts</span>{" "}
               <span className="muted-heading">in the structure.</span>
@@ -380,7 +410,10 @@ export function AccessibilityPageShell() {
         </section>
       </div>
 
-      <PageClose href="/examples" label="Examples" />
+      <PageClose
+        next={{ href: "/examples", label: "Examples" }}
+        previous={{ href: "/how-it-works", label: "How it works" }}
+      />
     </main>
   );
 }
@@ -494,34 +527,37 @@ function SourceUploader() {
 
 export function LessonStudioPage() {
   return (
-    <main className="studio-main" id="main-content" tabIndex={-1}>
-      <section aria-labelledby="studio-title" className="studio-header">
-        <div className="section-shell studio-header-grid">
-          <div className="studio-header-copy">
-            <h1 id="studio-title">Create a lesson.</h1>
-            <p>Start with one chart or process diagram.</p>
+    <main className="information-page studio-main" id="main-content" tabIndex={-1}>
+      <div className="information-content studio-content">
+        <section aria-labelledby="studio-title" className="studio-header">
+          <div className="section-shell studio-header-grid">
+            <div className="studio-header-copy">
+              <h1 id="studio-title">Create a lesson.</h1>
+              <p>Start with one chart or process diagram.</p>
+            </div>
+            <StudioProgress />
           </div>
-          <StudioProgress />
-        </div>
-      </section>
+        </section>
 
-      <section aria-label="Create an accessible lesson" className="studio-editor">
-        <div className="section-shell studio-workspace">
-          <div className="studio-source-grid">
-            <VisualTypeSelector />
-            <SourceUploader />
+        <section aria-label="Create an accessible lesson" className="studio-editor">
+          <div className="section-shell studio-workspace">
+            <div className="studio-source-grid">
+              <VisualTypeSelector />
+              <SourceUploader />
+            </div>
+            <div className="studio-notes">
+              <p>
+                <strong>Teacher review is required before export.</strong>
+              </p>
+              <p id="privacy">
+                When connected, your image is sent to OpenAI. Optiq does not
+                intentionally save uploaded images.
+              </p>
+            </div>
           </div>
-          <div className="studio-notes">
-            <p>
-              <strong>Teacher review is required before export.</strong>
-            </p>
-            <p id="privacy">
-              When connected, your image is sent to OpenAI. Optiq does not
-              intentionally save uploaded images.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
+      <PageClose previous={{ href: "/examples", label: "Examples" }} />
     </main>
   );
 }
@@ -531,7 +567,7 @@ export function ExamplesPageShell() {
     <main className="information-page" id="main-content" tabIndex={-1}>
       <div className="information-content">
         <section aria-labelledby="examples-title" className="page-intro examples-intro">
-          <div className="section-shell">
+          <div className="section-shell page-intro-split">
             <h1 id="examples-title">
               <span>See the visual.</span>{" "}
               <span className="muted-heading">Explore the structure.</span>
@@ -575,7 +611,10 @@ export function ExamplesPageShell() {
         </section>
       </div>
 
-      <PageClose href="/create" label="Create a lesson" />
+      <PageClose
+        next={{ href: "/create", label: "Create a lesson" }}
+        previous={{ href: "/accessibility", label: "Accessibility" }}
+      />
     </main>
   );
 }

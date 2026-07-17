@@ -510,9 +510,9 @@ html[data-route-direction="backward"] .route-frame {
   font-size: 0.94rem;
 }
 
-/* Shared page intros (each route arranges its own) */
+/* Shared editorial-page composition */
 .page-intro {
-  padding-block: clamp(3.25rem, 6vw, 5.25rem) clamp(2.25rem, 4vw, 3.25rem);
+  padding-block: clamp(2.5rem, 4vw, 3.25rem) clamp(1.25rem, 2vw, 1.75rem);
 }
 
 .page-intro h1 {
@@ -533,7 +533,7 @@ html[data-route-direction="backward"] .route-frame {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
   gap: clamp(2rem, 5vw, 5rem);
-  align-items: end;
+  align-items: center;
 }
 
 .page-intro-split h1 {
@@ -541,33 +541,19 @@ html[data-route-direction="backward"] .route-frame {
 }
 
 .page-intro-split .body-large {
-  margin: 0 0 0.35rem;
+  margin: 0;
 }
 
 .how-intro .body-large {
   max-width: 40rem;
 }
 
-.how-intro {
-  padding-block: clamp(2.5rem, 4vw, 3.5rem) 1.25rem;
-}
-
 .accessibility-intro-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.accessibility-intro {
-  padding-bottom: 1rem;
+  width: min(100% - 4rem, var(--page-width));
 }
 
 .accessibility-intro .body-large {
   max-width: 42rem;
-  margin: 1.25rem 0 0;
-}
-
-.examples-intro {
-  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .examples-intro .body-large {
@@ -575,12 +561,8 @@ html[data-route-direction="backward"] .route-frame {
 }
 
 /* Product */
-.product-intro {
-  padding-block: clamp(1.75rem, 3vw, 2.75rem) 1rem;
-}
-
 .product-overview {
-  padding-block: 0.5rem 2rem;
+  padding-block: 1rem 2rem;
 }
 
 .product-overview-grid {
@@ -804,14 +786,16 @@ html[data-route-direction="backward"] .route-frame {
   padding-left: 1rem;
 }
 
-/* Page close (quiet next-page link) */
+/* Page close */
 .page-close {
   border-top: 1px solid var(--line);
 }
 
 .page-close-inner {
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: center;
   padding-block: 2rem 2.75rem;
 }
 
@@ -829,6 +813,15 @@ html[data-route-direction="backward"] .route-frame {
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 0.24em;
+}
+
+.page-close-link-previous {
+  justify-self: start;
+}
+
+.page-close-link-next {
+  justify-self: end;
+  text-align: right;
 }
 
 /* Creation workspace */
@@ -904,7 +897,7 @@ html[data-route-direction="backward"] .route-frame {
 }
 
 .studio-workspace {
-  padding: clamp(1.4rem, 2.5vw, 1.85rem);
+  padding: clamp(1.4rem, 2.5vw, 1.8rem);
   background: var(--surface);
   border-radius: 24px;
   box-shadow: 0 18px 50px rgb(35 29 18 / 6%);

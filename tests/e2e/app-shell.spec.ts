@@ -114,7 +114,7 @@ test("uses horizontal forward and backward route motion", async ({ page }) => {
   expect(backwardMotion.firstTransform).not.toContain("translateY");
 });
 
-test("aligns information and next-page rows across editorial routes", async ({ page }) => {
+test("aligns content and page navigation rows across routed pages", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
 
   const routeEndings: Array<{
@@ -123,7 +123,13 @@ test("aligns information and next-page rows across editorial routes", async ({ p
     nextTop: number;
   }> = [];
 
-  for (const route of ["/product", "/how-it-works", "/accessibility", "/examples"]) {
+  for (const route of [
+    "/product",
+    "/how-it-works",
+    "/accessibility",
+    "/examples",
+    "/create",
+  ]) {
     await page.goto(route);
     routeEndings.push(
       await page.evaluate(() => ({
@@ -141,6 +147,65 @@ test("aligns information and next-page rows across editorial routes", async ({ p
   expect(new Set(routeEndings.map(({ nextTop }) => nextTop)).size).toBe(1);
   expect(new Set(routeEndings.map(({ footerTop }) => footerTop)).size).toBe(1);
   expect(routeEndings[0]?.footerTop).toBeGreaterThan(900);
+});
+
+test("provides accurate previous and next page navigation", async ({ page }) => {
+  const pageNavigation = [
+    ["/product", "/", "Previous: Home", "/how-it-works", "Next: How it works"],
+    [
+      "/how-it-works",
+      "/product",
+      "Previous: Product",
+      "/accessibility",
+      "Next: Accessibility",
+    ],
+    [
+      "/accessibility",
+      "/how-it-works",
+      "Previous: How it works",
+      "/examples",
+      "Next: Examples",
+    ],
+    [
+      "/examples",
+      "/accessibility",
+      "Previous: Accessibility",
+      "/create",
+      "Next: Create a lesson",
+    ],
+  ] as const;
+
+  for (const [route, previousHref, previousName, nextHref, nextName] of pageNavigation) {
+    await page.goto(route);
+    const navigation = page.getByRole("navigation", { name: "Page navigation" });
+    await expect(navigation.getByRole("link", { name: previousName })).toHaveAttribute(
+      "href",
+      previousHref,
+    );
+    await expect(navigation.getByRole("link", { name: nextName })).toHaveAttribute(
+      "href",
+      nextHref,
+    );
+  }
+
+  await page.goto("/create");
+  const createNavigation = page.getByRole("navigation", { name: "Page navigation" });
+  await expect(
+    createNavigation.getByRole("link", { name: "Previous: Examples" }),
+  ).toHaveAttribute("href", "/examples");
+  await expect(createNavigation.getByRole("link")).toHaveCount(1);
+
+  await page.goto("/accessibility");
+  await page
+    .getByRole("navigation", { name: "Page navigation" })
+    .getByRole("link", { name: "Next: Examples" })
+    .click();
+  await expect(page).toHaveURL(/\/examples$/);
+  await page
+    .getByRole("navigation", { name: "Page navigation" })
+    .getByRole("link", { name: "Previous: Accessibility" })
+    .click();
+  await expect(page).toHaveURL(/\/accessibility$/);
 });
 
 test("keeps the rebuilt studio native, editorial, and keyboard operable", async ({
