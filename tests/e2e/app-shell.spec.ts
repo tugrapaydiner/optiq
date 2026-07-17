@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("loads the Optiq shell and main heading", async ({ page }) => {
+test("loads the focused Optiq homepage without console errors", async ({ page }) => {
   const browserErrors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") browserErrors.push(message.text());
@@ -15,14 +15,68 @@ test("loads the Optiq shell and main heading", async ({ page }) => {
       name: "Visual lessons, made accessible.",
     }),
   ).toBeVisible();
-  await expect(page.locator("main img")).toHaveCount(4);
+  await expect(page.locator("main img")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Open Next.js Dev Tools" })).toHaveCount(
+    0,
+  );
+  await expect(page.locator("footer .brand-logo-light")).toBeVisible();
+  await expect(page.getByText("Optiq · Tugrap Turker Aydiner")).toBeVisible();
+
+  const visualSystem = await page.evaluate(() => {
+    const footerLogo = document.querySelector<HTMLElement>(".brand-logo-light");
+    return {
+      bodyFont: getComputedStyle(document.body).fontFamily,
+      footerLogoFilter: footerLogo ? getComputedStyle(footerLogo).filter : "",
+      footerLogoBlend: footerLogo
+        ? getComputedStyle(footerLogo).mixBlendMode
+        : "",
+    };
+  });
+
+  expect(visualSystem.bodyFont).toContain("Manrope Variable");
+  expect(visualSystem.footerLogoFilter).toContain("invert");
+  expect(visualSystem.footerLogoBlend).toBe("lighten");
   expect(browserErrors).toEqual([]);
+});
+
+test("separates product, examples, and lesson creation", async ({ page }) => {
+  await page.goto("/");
+
+  const primaryNavigation = page.getByRole("navigation", {
+    name: "Primary navigation",
+  });
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Product" }),
+  ).toHaveAttribute("href", "/#product");
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Examples" }),
+  ).toHaveAttribute("href", "/examples");
+
+  await primaryNavigation.getByRole("link", { name: "Examples" }).click();
+  await expect(page).toHaveURL(/\/examples$/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "See the visual. Explore the structure.",
+    }),
+  ).toBeVisible();
+  await expect(page.locator("article.example-story")).toHaveCount(3);
+  await expect(page.locator(".story-label")).toHaveCount(0);
+
+  await page.goto("/");
+  await page.locator("a.header-action").click();
+  await expect(page).toHaveURL(/\/create$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Start with one visual." }),
+  ).toBeVisible();
+  await expect(page.locator(".studio-workspace")).toBeVisible();
+  await expect(page.locator(".workspace")).toHaveCount(0);
 });
 
 test("reveals the skip link and supports native radio-key navigation", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/create");
 
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to main content" });
@@ -42,19 +96,21 @@ test("reveals the skip link and supports native radio-key navigation", async ({
   await expect(processMode).toBeFocused();
 });
 
-test("does not create horizontal overflow at required responsive widths", async ({
+test("does not create horizontal overflow across routes and widths", async ({
   page,
 }) => {
-  for (const width of [1440, 1280, 1024, 768, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
+  for (const route of ["/", "/examples", "/create"]) {
+    for (const width of [1440, 1280, 1024, 768, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(route);
 
-    const dimensions = await page.evaluate(() => ({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
+      const dimensions = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
 
-    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    }
   }
 });
 
