@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0",
+  "supported": true,
+  "unsupportedReason": null,
+  "title": "Monthly library visits",
+  "summary": "Library visits increase overall from January to May.",
+  "chartType": "bar",
+  "xAxis": {
+    "label": "Month",
+    "unit": null
+  },
+  "yAxis": {
+    "label": "Visits",
+    "unit": "visits",
+    "visibleMin": 0,
+    "visibleMax": 250
+  },
+  "series": [
+    {
+      "id": "chart-bar-01-visits",
+      "label": "Visits",
+      "points": [
+        {
+          "id": "chart-bar-01-visits-1",
+          "xLabel": "Jan",
+          "value": 120,
+          "displayValue": "120",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-bar-01-visits-2",
+          "xLabel": "Feb",
+          "value": 165,
+          "displayValue": "165",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-bar-01-visits-3",
+          "xLabel": "Mar",
+          "value": 142,
+          "displayValue": "142",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-bar-01-visits-4",
+          "xLabel": "Apr",
+          "value": 190,
+          "displayValue": "190",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-bar-01-visits-5",
+          "xLabel": "May",
+          "value": 210,
+          "displayValue": "210",
+          "status": "verified_visible_text"
+        }
+      ]
+    }
+  ],
+  "trends": [
+    {
+      "id": "visits-overall-rise",
+      "text": "Visits rise overall from 120 in January to 210 in May.",
+      "status": "verified_visible_text"
+    }
+  ],
+  "reviewItems": []
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0",
+  "supported": true,
+  "unsupportedReason": null,
+  "title": "Water cycle",
+  "summary": "A repeating cycle moves water through evaporation, condensation, precipitation, and collection before returning to evaporation.",
+  "nodes": [
+    {
+      "id": "evaporation",
+      "label": "Evaporation",
+      "description": "Liquid water becomes water vapour.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "condensation",
+      "label": "Condensation",
+      "description": "Water vapour cools into droplets.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "precipitation",
+      "label": "Precipitation",
+      "description": "Water falls from clouds.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "collection",
+      "label": "Collection",
+      "description": "Water gathers in lakes and oceans.",
+      "status": "verified_visible_text"
+    }
+  ],
+  "edges": [
+    {
+      "id": "evaporation-to-condensation",
+      "from": "evaporation",
+      "to": "condensation",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "condensation-to-precipitation",
+      "from": "condensation",
+      "to": "precipitation",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "precipitation-to-collection",
+      "from": "precipitation",
+      "to": "collection",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "collection-to-evaporation",
+      "from": "collection",
+      "to": "evaporation",
+      "label": null,
+      "status": "inferred_from_layout"
+    }
+  ],
+  "readingOrder": [
+    "evaporation",
+    "condensation",
+    "precipitation",
+    "collection"
+  ],
+  "reviewItems": []
+}

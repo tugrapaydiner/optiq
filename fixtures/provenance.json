@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0",
+  "generator": {
+    "path": "scripts/generate-fixtures.mjs",
+    "seed": "optiq-owned-fixtures-v1",
+    "version": "1.0.0"
+  },
+  "license": {
+    "holder": "Optiq project",
+    "spdx": "CC0-1.0",
+    "statement": "Original synthetic data and graphics created specifically for Optiq."
+  },
+  "fixtures": [
+    {
+      "challenge": "Clean single-series bars with five directly labelled values.",
+      "gold": "fixtures/gold/chart-bar-01.json",
+      "id": "chart-bar-01",
+      "image": "fixtures/images/chart-bar-01.png",
+      "kind": "bar",
+      "mode": "chart"
+    },
+    {
+      "challenge": "Two grouped series with a clear legend and eight exact values.",
+      "gold": "fixtures/gold/chart-bar-02.json",
+      "id": "chart-bar-02",
+      "image": "fixtures/images/chart-bar-02.png",
+      "kind": "bar",
+      "mode": "chart"
+    },
+    {
+      "challenge": "Single line with a negative value and visible zero crossing.",
+      "gold": "fixtures/gold/chart-line-01.json",
+      "id": "chart-line-01",
+      "image": "fixtures/images/chart-line-01.png",
+      "kind": "line",
+      "mode": "chart"
+    },
+    {
+      "challenge": "Two nearby lines, a legend, and eight exact percentage values.",
+      "gold": "fixtures/gold/chart-line-02.json",
+      "id": "chart-line-02",
+      "image": "fixtures/images/chart-line-02.png",
+      "kind": "line",
+      "mode": "chart"
+    },
+    {
+      "challenge": "A readable five-node process with one split and one merge.",
+      "gold": "fixtures/gold/process-01.json",
+      "id": "process-01",
+      "image": "fixtures/images/process-01.png",
+      "kind": "branching_process",
+      "mode": "process"
+    },
+    {
+      "challenge": "A four-node directed cycle with a numbered reading start.",
+      "gold": "fixtures/gold/process-02.json",
+      "id": "process-02",
+      "image": "fixtures/images/process-02.png",
+      "kind": "cyclic_process",
+      "mode": "process"
+    }
+  ]
+}

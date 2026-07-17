@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "supported": true,
+  "unsupportedReason": null,
+  "title": "Seed germination: parallel growth",
+  "summary": "After a seed absorbs water, root and shoot growth form two connected branches before the first leaves open.",
+  "nodes": [
+    {
+      "id": "seed",
+      "label": "Seed",
+      "description": "A dry seed begins the process.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "water",
+      "label": "Absorbs water",
+      "description": "The seed coat takes in water.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "root",
+      "label": "Root emerges",
+      "description": "The first root grows downward.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "shoot",
+      "label": "Shoot emerges",
+      "description": "The shoot grows upward.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "leaves",
+      "label": "First leaves open",
+      "description": "The young plant opens its first leaves.",
+      "status": "verified_visible_text"
+    }
+  ],
+  "edges": [
+    {
+      "id": "seed-to-water",
+      "from": "seed",
+      "to": "water",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "water-to-root",
+      "from": "water",
+      "to": "root",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "water-to-shoot",
+      "from": "water",
+      "to": "shoot",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "root-to-leaves",
+      "from": "root",
+      "to": "leaves",
+      "label": null,
+      "status": "inferred_from_layout"
+    },
+    {
+      "id": "shoot-to-leaves",
+      "from": "shoot",
+      "to": "leaves",
+      "label": null,
+      "status": "inferred_from_layout"
+    }
+  ],
+  "readingOrder": [
+    "seed",
+    "water",
+    "root",
+    "shoot",
+    "leaves"
+  ],
+  "reviewItems": []
+}

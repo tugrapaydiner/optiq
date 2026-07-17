@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0",
+  "supported": true,
+  "unsupportedReason": null,
+  "title": "Quiz score by study method",
+  "summary": "Both methods improve, with retrieval practice increasing more quickly.",
+  "chartType": "line",
+  "xAxis": {
+    "label": "Week",
+    "unit": null
+  },
+  "yAxis": {
+    "label": "Average quiz score",
+    "unit": "%",
+    "visibleMin": 55,
+    "visibleMax": 90
+  },
+  "series": [
+    {
+      "id": "chart-line-02-retrieval",
+      "label": "Retrieval practice",
+      "points": [
+        {
+          "id": "chart-line-02-retrieval-1",
+          "xLabel": "Week 1",
+          "value": 62,
+          "displayValue": "62%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-retrieval-2",
+          "xLabel": "Week 2",
+          "value": 70,
+          "displayValue": "70%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-retrieval-3",
+          "xLabel": "Week 3",
+          "value": 78,
+          "displayValue": "78%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-retrieval-4",
+          "xLabel": "Week 4",
+          "value": 85,
+          "displayValue": "85%",
+          "status": "verified_visible_text"
+        }
+      ]
+    },
+    {
+      "id": "chart-line-02-rereading",
+      "label": "Rereading",
+      "points": [
+        {
+          "id": "chart-line-02-rereading-1",
+          "xLabel": "Week 1",
+          "value": 61,
+          "displayValue": "61%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-rereading-2",
+          "xLabel": "Week 2",
+          "value": 64,
+          "displayValue": "64%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-rereading-3",
+          "xLabel": "Week 3",
+          "value": 66,
+          "displayValue": "66%",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-02-rereading-4",
+          "xLabel": "Week 4",
+          "value": 68,
+          "displayValue": "68%",
+          "status": "verified_visible_text"
+        }
+      ]
+    }
+  ],
+  "trends": [
+    {
+      "id": "retrieval-faster-rise",
+      "text": "Retrieval practice rises by 23 points from Week 1 to Week 4.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "rereading-slower-rise",
+      "text": "Rereading rises by 7 points from Week 1 to Week 4.",
+      "status": "verified_visible_text"
+    }
+  ],
+  "reviewItems": []
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "supported": true,
+  "unsupportedReason": null,
+  "title": "Morning temperature",
+  "summary": "Temperature rises from below zero, peaks at noon, then falls slightly.",
+  "chartType": "line",
+  "xAxis": {
+    "label": "Time",
+    "unit": null
+  },
+  "yAxis": {
+    "label": "Temperature",
+    "unit": "°C",
+    "visibleMin": -5,
+    "visibleMax": 6
+  },
+  "series": [
+    {
+      "id": "chart-line-01-temperature",
+      "label": "Temperature",
+      "points": [
+        {
+          "id": "chart-line-01-temperature-1",
+          "xLabel": "06:00",
+          "value": -4,
+          "displayValue": "-4 °C",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-01-temperature-2",
+          "xLabel": "08:00",
+          "value": -1,
+          "displayValue": "-1 °C",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-01-temperature-3",
+          "xLabel": "10:00",
+          "value": 2,
+          "displayValue": "2 °C",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-01-temperature-4",
+          "xLabel": "12:00",
+          "value": 5,
+          "displayValue": "5 °C",
+          "status": "verified_visible_text"
+        },
+        {
+          "id": "chart-line-01-temperature-5",
+          "xLabel": "14:00",
+          "value": 3,
+          "displayValue": "3 °C",
+          "status": "verified_visible_text"
+        }
+      ]
+    }
+  ],
+  "trends": [
+    {
+      "id": "temperature-crosses-zero",
+      "text": "Temperature crosses zero between 08:00 and 10:00.",
+      "status": "verified_visible_text"
+    },
+    {
+      "id": "temperature-noon-peak",
+      "text": "Temperature reaches 5 °C at 12:00 before falling to 3 °C.",
+      "status": "verified_visible_text"
+    }
+  ],
+  "reviewItems": []
+}
