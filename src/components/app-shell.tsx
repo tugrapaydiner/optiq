@@ -204,53 +204,55 @@ export function AppShell() {
 
 export function ProductPageShell() {
   return (
-    <main id="main-content" tabIndex={-1}>
-      <section aria-labelledby="product-title" className="page-intro product-intro">
-        <div className="section-shell page-intro-split">
-          <h1 id="product-title">
-            <span>Keep the visual.</span>{" "}
-            <span className="muted-heading">Change the access.</span>
-          </h1>
-          <p className="body-large">
-            Two visual types. Exact information, teacher review, and more ways
-            to explore.
-          </p>
-        </div>
-      </section>
+    <main className="information-page" id="main-content" tabIndex={-1}>
+      <div className="information-content">
+        <section aria-labelledby="product-title" className="page-intro product-intro">
+          <div className="section-shell page-intro-split">
+            <h1 id="product-title">
+              <span>Keep the visual.</span>{" "}
+              <span className="muted-heading">Change the access.</span>
+            </h1>
+            <p className="body-large">
+              Two visual types. Exact information, teacher review, and more ways
+              to explore.
+            </p>
+          </div>
+        </section>
 
-      <section aria-labelledby="experiences-heading" className="product-overview">
-        <div className="section-shell product-overview-grid">
-          <div className="product-photo-frame">
-            <Image
-              alt="A learner wearing headphones explores chart information beside a laptop and printed graphs."
-              className="product-photo"
-              height={1086}
-              quality={92}
-              sizes="(max-width: 900px) calc(100vw - 32px), 54vw"
-              src={chartExplorationImage}
-              width={1448}
-            />
+        <section aria-labelledby="experiences-heading" className="product-overview">
+          <div className="section-shell product-overview-grid">
+            <div className="product-photo-frame">
+              <Image
+                alt="A learner wearing headphones explores chart information beside a laptop and printed graphs."
+                className="product-photo"
+                height={1086}
+                quality={92}
+                sizes="(max-width: 900px) calc(100vw - 32px), 54vw"
+                src={chartExplorationImage}
+                width={1448}
+              />
+            </div>
+            <div className="product-capabilities">
+              <h2 id="experiences-heading">Two experiences</h2>
+              <article className="experience">
+                <h3>Bar and line charts</h3>
+                <p>
+                  Exact values stay in a native table. Students move by keyboard
+                  and can choose to hear the data as sound.
+                </p>
+              </article>
+              <article className="experience">
+                <h3>Process diagrams</h3>
+                <p>
+                  Steps keep their names, order, and connections. Students follow
+                  the path by keyboard or screen reader.
+                </p>
+              </article>
+              <p className="review-line">Teacher review is required before export.</p>
+            </div>
           </div>
-          <div className="product-capabilities">
-            <h2 id="experiences-heading">Two experiences</h2>
-            <article className="experience">
-              <h3>Bar and line charts</h3>
-              <p>
-                Exact values stay in a native table. Students move by keyboard
-                and can choose to hear the data as sound.
-              </p>
-            </article>
-            <article className="experience">
-              <h3>Process diagrams</h3>
-              <p>
-                Steps keep their names, order, and connections. Students follow
-                the path by keyboard or screen reader.
-              </p>
-            </article>
-            <p className="review-line">Teacher review is required before export.</p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
       <PageClose href="/how-it-works" label="How it works" />
     </main>
   );
@@ -277,45 +279,47 @@ const workflowStages = [
 
 export function HowItWorksPageShell() {
   return (
-    <main id="main-content" tabIndex={-1}>
-      <section aria-labelledby="how-title" className="page-intro how-intro">
-        <div className="section-shell">
-          <h1 id="how-title">
-            <span>Four deliberate stages.</span>{" "}
-            <span className="muted-heading">One accountable path.</span>
-          </h1>
-          <p className="body-large">
-            From one clear image to a lesson students can explore. An educator
-            approves every step that matters.
-          </p>
-        </div>
-      </section>
-
-      <section aria-labelledby="workflow-detail-heading" className="workflow-detail">
-        <div className="section-shell">
-          <h2 className="visually-hidden" id="workflow-detail-heading">
-            Lesson creation stages
-          </h2>
-          <ol className="workflow-rail">
-            {workflowStages.map((stage) => (
-              <li key={stage.title}>
-                <strong>{stage.title}</strong>
-                <p>{stage.body}</p>
-              </li>
-            ))}
-          </ol>
-          <div className="workflow-image-frame">
-            <Image
-              alt="A learner arranges connected process steps while working beside a laptop."
-              className="workflow-image"
-              height={1086}
-              sizes="(max-width: 900px) calc(100vw - 32px), 1200px"
-              src={diagramNavigationImage}
-              width={1448}
-            />
+    <main className="information-page" id="main-content" tabIndex={-1}>
+      <div className="information-content">
+        <section aria-labelledby="how-title" className="page-intro how-intro">
+          <div className="section-shell">
+            <h1 id="how-title">
+              <span>Four deliberate stages.</span>{" "}
+              <span className="muted-heading">One accountable path.</span>
+            </h1>
+            <p className="body-large">
+              From one clear image to a lesson students can explore. An educator
+              approves every step that matters.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section aria-labelledby="workflow-detail-heading" className="workflow-detail">
+          <div className="section-shell">
+            <h2 className="visually-hidden" id="workflow-detail-heading">
+              Lesson creation stages
+            </h2>
+            <ol className="workflow-rail">
+              {workflowStages.map((stage) => (
+                <li key={stage.title}>
+                  <strong>{stage.title}</strong>
+                  <p>{stage.body}</p>
+                </li>
+              ))}
+            </ol>
+            <div className="workflow-image-frame">
+              <Image
+                alt="A learner arranges connected process steps while working beside a laptop."
+                className="workflow-image"
+                height={1086}
+                sizes="(max-width: 900px) calc(100vw - 32px), 1200px"
+                src={diagramNavigationImage}
+                width={1448}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
 
       <PageClose href="/accessibility" label="Accessibility" />
     </main>
@@ -324,55 +328,57 @@ export function HowItWorksPageShell() {
 
 export function AccessibilityPageShell() {
   return (
-    <main id="main-content" tabIndex={-1}>
-      <section
-        aria-labelledby="accessibility-title"
-        className="page-intro accessibility-intro"
-      >
-        <div className="section-shell accessibility-intro-inner">
-          <h1 id="accessibility-title">
-            <span>Access starts</span>{" "}
-            <span className="muted-heading">in the structure.</span>
-          </h1>
-          <p className="body-large">
-            Optiq keeps values, labels, relationships, and uncertainty
-            available from the start.
-          </p>
-        </div>
-      </section>
+    <main className="information-page" id="main-content" tabIndex={-1}>
+      <div className="information-content">
+        <section
+          aria-labelledby="accessibility-title"
+          className="page-intro accessibility-intro"
+        >
+          <div className="section-shell accessibility-intro-inner">
+            <h1 id="accessibility-title">
+              <span>Access starts</span>{" "}
+              <span className="muted-heading">in the structure.</span>
+            </h1>
+            <p className="body-large">
+              Optiq keeps values, labels, relationships, and uncertainty
+              available from the start.
+            </p>
+          </div>
+        </section>
 
-      <section aria-labelledby="principles-heading" className="principles-page">
-        <div className="section-shell principles-layout">
-          <div className="principles-image-frame">
-            <Image
-              alt="An educator reviews lesson materials, charts, and notes beside a laptop."
-              className="principles-image"
-              height={1086}
-              quality={92}
-              sizes="(max-width: 900px) calc(100vw - 32px), 58vw"
-              src={teacherReviewImage}
-              width={1448}
-            />
+        <section aria-labelledby="principles-heading" className="principles-page">
+          <div className="section-shell principles-layout">
+            <div className="principles-image-frame">
+              <Image
+                alt="An educator reviews lesson materials, charts, and notes beside a laptop."
+                className="principles-image"
+                height={1086}
+                quality={92}
+                sizes="(max-width: 900px) calc(100vw - 32px), 58vw"
+                src={teacherReviewImage}
+                width={1448}
+              />
+            </div>
+            <div className="principles-copy">
+              <h2 id="principles-heading">Three commitments.</h2>
+              <dl className="principle-list">
+                <div>
+                  <dt>Keep the facts</dt>
+                  <dd>Values, labels, units, and relationships stay structured.</dd>
+                </div>
+                <div>
+                  <dt>Keep people in control</dt>
+                  <dd>Educators correct every draft before export.</dd>
+                </div>
+                <div>
+                  <dt>Offer more than text</dt>
+                  <dd>Students use tables, keys, reading order, and optional sound.</dd>
+                </div>
+              </dl>
+            </div>
           </div>
-          <div className="principles-copy">
-            <h2 id="principles-heading">Three commitments.</h2>
-            <dl className="principle-list">
-              <div>
-                <dt>Keep the facts</dt>
-                <dd>Values, labels, units, and relationships stay structured.</dd>
-              </div>
-              <div>
-                <dt>Keep people in control</dt>
-                <dd>Educators correct every draft before export.</dd>
-              </div>
-              <div>
-                <dt>Offer more than text</dt>
-                <dd>Students use tables, keys, reading order, and optional sound.</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <PageClose href="/examples" label="Examples" />
     </main>
@@ -522,50 +528,52 @@ export function LessonStudioPage() {
 
 export function ExamplesPageShell() {
   return (
-    <main id="main-content" tabIndex={-1}>
-      <section aria-labelledby="examples-title" className="page-intro examples-intro">
-        <div className="section-shell">
-          <h1 id="examples-title">
-            <span>See the visual.</span>{" "}
-            <span className="muted-heading">Explore the structure.</span>
-          </h1>
-          <p className="body-large">
-            Two lesson formats. No flattened descriptions.
-          </p>
-        </div>
-      </section>
+    <main className="information-page" id="main-content" tabIndex={-1}>
+      <div className="information-content">
+        <section aria-labelledby="examples-title" className="page-intro examples-intro">
+          <div className="section-shell">
+            <h1 id="examples-title">
+              <span>See the visual.</span>{" "}
+              <span className="muted-heading">Explore the structure.</span>
+            </h1>
+            <p className="body-large">
+              Two lesson formats. No flattened descriptions.
+            </p>
+          </div>
+        </section>
 
-      <section aria-label="Optiq examples" className="examples-page">
-        <div className="section-shell example-format-grid">
-          <article className="lesson-example lesson-example-chart" id="charts">
-            <div>
-              <p className="example-type">Chart lesson</p>
-              <h2>Exact data. Four ways in.</h2>
-            </div>
-            <ul aria-label="Chart lesson outputs">
-              <li>Native table</li>
-              <li>Trend summary</li>
-              <li>Keyboard exploration</li>
-              <li>Optional sound</li>
-            </ul>
-          </article>
-          <article
-            className="lesson-example lesson-example-process"
-            id="process-diagrams"
-          >
-            <div>
-              <p className="example-type">Process lesson</p>
-              <h2>Every step stays connected.</h2>
-            </div>
-            <ul aria-label="Process lesson outputs">
-              <li>Ordered nodes</li>
-              <li>Named relationships</li>
-              <li>Reading sequence</li>
-              <li>Keyboard navigation</li>
-            </ul>
-          </article>
-        </div>
-      </section>
+        <section aria-label="Optiq examples" className="examples-page">
+          <div className="section-shell example-format-grid">
+            <article className="lesson-example lesson-example-chart" id="charts">
+              <div>
+                <p className="example-type">Chart lesson</p>
+                <h2>Exact data. Four ways in.</h2>
+              </div>
+              <ul aria-label="Chart lesson outputs">
+                <li>Native table</li>
+                <li>Trend summary</li>
+                <li>Keyboard exploration</li>
+                <li>Optional sound</li>
+              </ul>
+            </article>
+            <article
+              className="lesson-example lesson-example-process"
+              id="process-diagrams"
+            >
+              <div>
+                <p className="example-type">Process lesson</p>
+                <h2>Every step stays connected.</h2>
+              </div>
+              <ul aria-label="Process lesson outputs">
+                <li>Ordered nodes</li>
+                <li>Named relationships</li>
+                <li>Reading sequence</li>
+                <li>Keyboard navigation</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+      </div>
 
       <PageClose href="/create" label="Create a lesson" />
     </main>

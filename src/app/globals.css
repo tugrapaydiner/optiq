@@ -17,6 +17,7 @@
   --focus: #126ea3;
   --page-width: 1200px;
   --header-height: 4.75rem;
+  --page-close-height: 7.5625rem;
   --font-body: "Manrope Variable", Manrope, system-ui, sans-serif;
   color-scheme: light;
 }
@@ -46,6 +47,30 @@ body {
 
 main {
   min-height: calc(100svh - var(--header-height));
+}
+
+.information-page {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.information-content {
+  display: flex;
+  min-height: max(
+    44rem,
+    calc(100svh - var(--header-height) - var(--page-close-height))
+  );
+  flex-direction: column;
+}
+
+.information-content > section:last-child {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.information-content > section:last-child > .section-shell {
+  width: min(100% - 4rem, var(--page-width));
 }
 
 button,
@@ -523,6 +548,10 @@ html[data-route-direction="backward"] .route-frame {
   max-width: 40rem;
 }
 
+.how-intro {
+  padding-block: clamp(2.5rem, 4vw, 3.5rem) 1.25rem;
+}
+
 .accessibility-intro-inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -610,7 +639,7 @@ html[data-route-direction="backward"] .route-frame {
 
 /* How it works */
 .workflow-detail {
-  padding-block: clamp(2rem, 4vw, 3.25rem) clamp(3rem, 5vw, 4.25rem);
+  padding-block: 1rem 2rem;
 }
 
 .workflow-rail {
@@ -641,20 +670,20 @@ html[data-route-direction="backward"] .route-frame {
 }
 
 .workflow-image-frame {
-  margin-top: clamp(2.5rem, 4.5vw, 3.75rem);
+  margin-top: clamp(1.5rem, 2.5vw, 2rem);
 }
 
 .workflow-image {
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 6;
+  aspect-ratio: 26 / 7;
   object-fit: cover;
   object-position: center 45%;
 }
 
 /* Accessibility */
 .principles-page {
-  padding-block: clamp(1.25rem, 2.5vw, 2rem) clamp(3rem, 5vw, 4.25rem);
+  padding-block: clamp(1rem, 2vw, 1.5rem) 2rem;
 }
 
 .principles-layout {
@@ -701,7 +730,7 @@ html[data-route-direction="backward"] .route-frame {
 .principles-image {
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
   object-position: center 48%;
 }
@@ -1282,6 +1311,10 @@ html[data-route-direction="backward"] .route-frame {
 @media (max-width: 47.99rem) {
   :root {
     --header-height: 4.25rem;
+  }
+
+  .information-content > section:last-child > .section-shell {
+    width: min(100% - 2rem, var(--page-width));
   }
 
   .page-shell,

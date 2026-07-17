@@ -114,24 +114,33 @@ test("uses horizontal forward and backward route motion", async ({ page }) => {
   expect(backwardMotion.firstTransform).not.toContain("translateY");
 });
 
-test("keeps the product footer below the fold and uses the shared next-page row", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto("/product");
+test("aligns information and next-page rows across editorial routes", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
 
-  const productLayout = await page.evaluate(() => ({
-    footerTop: document.querySelector("footer")?.getBoundingClientRect().top ?? 0,
-    viewportHeight: window.innerHeight,
-  }));
+  const routeEndings: Array<{
+    contentHeight: number;
+    footerTop: number;
+    nextTop: number;
+  }> = [];
 
-  expect(productLayout.footerTop).toBeGreaterThan(productLayout.viewportHeight);
-  await expect(page.locator("main img")).toHaveCount(1);
-  await expect(
-    page.getByRole("navigation", { name: "Continue" }).getByRole("link", {
-      name: "Next: How it works",
-    }),
-  ).toBeVisible();
+  for (const route of ["/product", "/how-it-works", "/accessibility", "/examples"]) {
+    await page.goto(route);
+    routeEndings.push(
+      await page.evaluate(() => ({
+        contentHeight:
+          document.querySelector(".information-content")?.getBoundingClientRect()
+            .height ?? 0,
+        footerTop: document.querySelector("footer")?.getBoundingClientRect().top ?? 0,
+        nextTop:
+          document.querySelector(".page-close")?.getBoundingClientRect().top ?? 0,
+      })),
+    );
+  }
+
+  expect(new Set(routeEndings.map(({ contentHeight }) => contentHeight)).size).toBe(1);
+  expect(new Set(routeEndings.map(({ nextTop }) => nextTop)).size).toBe(1);
+  expect(new Set(routeEndings.map(({ footerTop }) => footerTop)).size).toBe(1);
+  expect(routeEndings[0]?.footerTop).toBeGreaterThan(900);
 });
 
 test("keeps the rebuilt studio native, editorial, and keyboard operable", async ({
