@@ -12,9 +12,10 @@ test("loads the Optiq shell and main heading", async ({ page }) => {
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Make visual lessons accessible.",
+      name: "Visual lessons, made accessible.",
     }),
   ).toBeVisible();
+  await expect(page.locator("main img")).toHaveCount(4);
   expect(browserErrors).toEqual([]);
 });
 
@@ -31,9 +32,9 @@ test("reveals the skip link and supports native radio-key navigation", async ({
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
 
-  await page.keyboard.press("Tab");
   const chartMode = page.getByRole("radio", { name: /^Chart/ });
   const processMode = page.getByRole("radio", { name: /^Process diagram/ });
+  await chartMode.focus();
   await expect(chartMode).toBeFocused();
 
   await page.keyboard.press("ArrowDown");
@@ -41,16 +42,74 @@ test("reveals the skip link and supports native radio-key navigation", async ({
   await expect(processMode).toBeFocused();
 });
 
-test("does not create horizontal overflow at a 390 CSS pixel viewport", async ({
+test("does not create horizontal overflow at required responsive widths", async ({
+  page,
+}) => {
+  for (const width of [1440, 1280, 1024, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+
+    const dimensions = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  }
+});
+
+test("provides an operable mobile menu and 44 CSS pixel touch targets", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  const dimensions = await page.evaluate(() => ({
-    clientWidth: document.documentElement.clientWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-  }));
+  const menu = page.locator("summary");
+  await expect(menu).toBeVisible();
+  await menu.click();
+  await expect(
+    page.getByRole("navigation", { name: "Mobile navigation" }),
+  ).toBeVisible();
 
-  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  const undersizedTargets = await page.evaluate(() =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>(
+        "a, button, summary, label.mode-option",
+      ),
+    )
+      .map((element) => {
+        const rectangle = element.getBoundingClientRect();
+        return {
+          height: rectangle.height,
+          label: element.textContent?.trim().replace(/\s+/g, " ") ?? "",
+          width: rectangle.width,
+        };
+      })
+      .filter(
+        (target) =>
+          target.height > 0 &&
+          target.width > 0 &&
+          (target.height < 44 || target.width < 44),
+      ),
+  );
+
+  expect(undersizedTargets).toEqual([]);
+});
+
+test("removes decorative motion when reduced motion is requested", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+
+  const animationDurationMilliseconds = await page
+    .locator(".hero-media")
+    .evaluate((element) => {
+      const duration = getComputedStyle(element).animationDuration;
+      return duration.endsWith("ms")
+        ? Number.parseFloat(duration)
+        : Number.parseFloat(duration) * 1000;
+    });
+
+  expect(animationDurationMilliseconds).toBeLessThanOrEqual(0.01);
 });

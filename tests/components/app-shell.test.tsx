@@ -10,7 +10,7 @@ describe("AppShell", () => {
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
     expect(headings[0]).toHaveAccessibleName(
-      "Make visual lessons accessible.",
+      "Visual lessons, made accessible.",
     );
 
     expect(
@@ -22,13 +22,15 @@ describe("AppShell", () => {
     ).not.toBeChecked();
   });
 
-  it("keeps upload actions unavailable in the bootstrap shell", () => {
+  it("keeps upload actions truthfully unavailable in the static preview", () => {
     render(<AppShell />);
 
     expect(screen.getByLabelText("Image file")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Analyze image" })).toBeDisabled();
     expect(
-      screen.getByText("No file is sent in this preview."),
+      screen.getByRole("button", { name: "Analyze source" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText("Analysis is unavailable in this static preview."),
     ).toBeInTheDocument();
   });
 
@@ -38,9 +40,24 @@ describe("AppShell", () => {
     expect(
       screen.getByRole("list", { name: "Lesson creation progress" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Teacher review required")).toBeInTheDocument();
+    expect(screen.getByText("Teacher review is required.")).toBeInTheDocument();
     expect(
-      screen.getByText(/Critical uncertainties must be resolved before/),
+      screen.getByText(/Critical uncertainties must be resolved/),
     ).toBeInTheDocument();
+  });
+
+  it("uses the supplied imagery and only in-page navigation destinations", () => {
+    render(<AppShell />);
+
+    expect(
+      screen.getByRole("img", {
+        name: /Two learners work with laptops, headphones/,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("img")).toHaveLength(4);
+
+    for (const link of screen.getAllByRole("link")) {
+      expect(link.getAttribute("href")).toMatch(/^#/);
+    }
   });
 });
