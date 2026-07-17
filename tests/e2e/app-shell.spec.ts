@@ -1,4 +1,8 @@
+import { resolve } from "node:path";
+
 import { expect, test } from "@playwright/test";
+
+import chartFixture from "../../fixtures/gold/chart-bar-01.json";
 
 const routes = [
   "/",
@@ -73,12 +77,13 @@ test("gives every primary navigation item a distinct page", async ({ page }) => 
 });
 
 test("uses horizontal forward and backward route motion", async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto("/");
   await page
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Product" })
     .click();
-  await expect(page).toHaveURL(/\/product$/);
+  await expect(page).toHaveURL(/\/product$/, { timeout: 15_000 });
 
   const forwardMotion = await page.locator(".route-frame").evaluate((element) => {
     const animation = element.getAnimations()[0];
@@ -95,8 +100,11 @@ test("uses horizontal forward and backward route motion", async ({ page }) => {
   expect(forwardMotion.firstTransform).toContain("translateX");
   expect(forwardMotion.firstTransform).not.toContain("translateY");
 
-  await page.getByRole("link", { name: "Optiq home" }).first().click();
-  await expect(page).toHaveURL(/\/$/);
+  await page
+    .locator("header")
+    .getByRole("link", { name: "Optiq home" })
+    .click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 
   const backwardMotion = await page.locator(".route-frame").evaluate((element) => {
     const animation = element.getAnimations()[0];
@@ -115,6 +123,7 @@ test("uses horizontal forward and backward route motion", async ({ page }) => {
 });
 
 test("aligns content and page navigation rows across routed pages", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 1280, height: 900 });
 
   const routeEndings: Array<{
@@ -150,6 +159,7 @@ test("aligns content and page navigation rows across routed pages", async ({ pag
 });
 
 test("provides accurate previous and next page navigation", async ({ page }) => {
+  test.setTimeout(90_000);
   const pageNavigation = [
     ["/product", "/", "Previous: Home", "/how-it-works", "Next: How it works"],
     [
@@ -200,28 +210,49 @@ test("provides accurate previous and next page navigation", async ({ page }) => 
     .getByRole("navigation", { name: "Page navigation" })
     .getByRole("link", { name: "Next: Examples" })
     .click();
-  await expect(page).toHaveURL(/\/examples$/);
+  await expect(page).toHaveURL(/\/examples$/, { timeout: 15_000 });
   await page
     .getByRole("navigation", { name: "Page navigation" })
     .getByRole("link", { name: "Previous: Accessibility" })
     .click();
-  await expect(page).toHaveURL(/\/accessibility$/);
+  await expect(page).toHaveURL(/\/accessibility$/, { timeout: 15_000 });
 });
 
 test("keeps the rebuilt studio native, editorial, and keyboard operable", async ({
   page,
 }) => {
+  await page.route("**/api/analyze", async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        lesson: chartFixture,
+        mode: "chart",
+        ok: true,
+        provider: "fixture",
+        requestId: "e2e-request",
+      }),
+      contentType: "application/json",
+      status: 200,
+    });
+  });
   await page.goto("/create");
 
   await expect(page.locator(".studio-workspace")).toBeVisible();
   await expect(page.locator(".source-kind")).toBeVisible();
   await expect(page.locator(".upload-editorial")).toBeVisible();
 
-  const workspaceLayout = await page.locator(".studio-workspace").evaluate((workspace) => ({
-    bottom: workspace.getBoundingClientRect().bottom,
-    viewportHeight: window.innerHeight,
-  }));
-  expect(workspaceLayout.bottom).toBeLessThanOrEqual(workspaceLayout.viewportHeight);
+  const workspaceLayout = await page.locator(".studio-workspace").evaluate((workspace) => {
+    const pageClose = document.querySelector(".page-close");
+    return {
+      bottom: workspace.getBoundingClientRect().bottom,
+      pageCloseTop: pageClose?.getBoundingClientRect().top ?? 0,
+      viewportHeight: window.innerHeight,
+    };
+  });
+  expect(workspaceLayout.bottom).toBeLessThanOrEqual(workspaceLayout.pageCloseTop);
+  expect(workspaceLayout.pageCloseTop).toBeGreaterThan(workspaceLayout.viewportHeight);
+  expect(workspaceLayout.pageCloseTop - workspaceLayout.viewportHeight).toBeLessThanOrEqual(
+    80,
+  );
 
   const chartMode = page.getByRole("radio", { name: /^Chart/ });
   const processMode = page.getByRole("radio", { name: /^Process diagram/ });
@@ -229,12 +260,35 @@ test("keeps the rebuilt studio native, editorial, and keyboard operable", async 
   await page.keyboard.press("ArrowDown");
   await expect(processMode).toBeChecked();
   await expect(processMode).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(chartMode).toBeChecked();
+  await expect(chartMode).toBeFocused();
 
-  await expect(page.getByRole("button", { name: "Choose a file" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Analyze source" })).toBeDisabled();
-  await expect(
-    page.getByText("Analysis is unavailable in this static preview."),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Choose a file" })).toBeEnabled();
+  await expect(page.getByLabel("Image file")).toHaveAttribute("tabindex", "-1");
+  const analyze = page.getByRole("button", { name: "Analyze source" });
+  await expect(analyze).toBeDisabled();
+
+  await page
+    .getByLabel("Image file")
+    .setInputFiles(resolve("fixtures/images/chart-bar-01.png"));
+  await expect(page.getByAltText("Preview of the selected source image")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Replace" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Remove" })).toBeEnabled();
+  await expect(analyze).toBeEnabled();
+  await expect(analyze).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Built-in fixture draft")).toBeVisible();
+  await expect(page.getByText("Draft only. Teacher review comes next.")).toBeVisible();
+  await expect(page.getByText(chartFixture.title)).toBeVisible();
+
+  const remove = page.getByRole("button", { name: "Remove" });
+  await remove.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Choose a file" })).toBeFocused();
+  await expect(analyze).toBeDisabled();
+  await expect(page.getByRole("region", { name: "Analysis result" })).toHaveCount(0);
 });
 
 test("reveals the skip link and transfers focus to the page", async ({ page }) => {

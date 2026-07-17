@@ -101,7 +101,7 @@ describe("dedicated information pages", () => {
 });
 
 describe("LessonStudioPage", () => {
-  it("uses the rebuilt editorial source controls and truthful preview state", () => {
+  it("uses the rebuilt editorial source controls and live upload state", () => {
     render(<LessonStudioPage />);
 
     expect(
@@ -110,11 +110,12 @@ describe("LessonStudioPage", () => {
     expect(screen.getByRole("group", { name: "Visual type" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^Chart/ })).toBeChecked();
     expect(screen.getByRole("radio", { name: /^Process diagram/ })).not.toBeChecked();
-    expect(screen.getByLabelText("Image file")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Choose a file" })).toBeDisabled();
+    expect(screen.getByLabelText("Image file")).toBeEnabled();
+    expect(screen.getByLabelText("Image file")).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("button", { name: "Choose a file" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Analyze source" })).toBeDisabled();
     expect(
-      screen.getByText("Analysis is unavailable in this static preview."),
+      screen.getByText("Add a valid image to continue."),
     ).toBeInTheDocument();
   });
 
@@ -126,6 +127,9 @@ describe("LessonStudioPage", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText("Teacher review is required before export."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/opaque functional session cookie/i),
     ).toBeInTheDocument();
   });
 });

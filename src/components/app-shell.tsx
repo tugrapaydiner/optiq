@@ -5,6 +5,7 @@ import diagramNavigationImage from "../assets/images/optiq-diagram-navigation.pn
 import heroImage from "../assets/images/optiq-hero-accessible-learning.png";
 import teacherReviewImage from "../assets/images/optiq-teacher-review.png";
 import optiqLogo from "../assets/logo.png";
+import { LessonCreator, WorkflowProgress } from "./lesson-creator";
 import { TransitionLink } from "./transition-link";
 
 const navigationItems = [
@@ -32,7 +33,7 @@ function BrandMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
         alt=""
         className={`brand-logo brand-logo-${tone}`}
         height={1086}
-        loading={tone === "dark" ? "eager" : "lazy"}
+        loading="eager"
         sizes={tone === "light" ? "240px" : "132px"}
         src={optiqLogo}
         width={1448}
@@ -250,6 +251,7 @@ export function ProductPageShell() {
                 alt="A learner wearing headphones explores chart information beside a laptop and printed graphs."
                 className="product-photo"
                 height={1086}
+                loading="eager"
                 quality={92}
                 sizes="(max-width: 900px) calc(100vw - 32px), 54vw"
                 src={chartExplorationImage}
@@ -339,6 +341,7 @@ export function HowItWorksPageShell() {
                 alt="A learner arranges connected process steps while working beside a laptop."
                 className="workflow-image"
                 height={1086}
+                loading="eager"
                 sizes="(max-width: 900px) calc(100vw - 32px), 1200px"
                 src={diagramNavigationImage}
                 width={1448}
@@ -383,6 +386,7 @@ export function AccessibilityPageShell() {
                 alt="An educator reviews lesson materials, charts, and notes beside a laptop."
                 className="principles-image"
                 height={1086}
+                loading="eager"
                 quality={92}
                 sizes="(max-width: 900px) calc(100vw - 32px), 58vw"
                 src={teacherReviewImage}
@@ -418,114 +422,11 @@ export function AccessibilityPageShell() {
   );
 }
 
-function StudioProgress() {
-  return (
-    <ol aria-label="Lesson creation progress" className="studio-progress">
-      {workflowStages.map((stage, index) => (
-        <li aria-current={index === 0 ? "step" : undefined} key={stage.title}>
-          {stage.title}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function VisualTypeSelector() {
-  return (
-    <section aria-labelledby="visual-type-heading" className="source-kind">
-      <div className="studio-step-heading">
-        <h2 id="visual-type-heading">Visual type</h2>
-        <p>Choose what students need to explore.</p>
-      </div>
-
-      <fieldset>
-        <legend>Visual type</legend>
-        <div className="source-choice-list">
-          <label className="source-choice">
-            <input
-              className="visually-hidden"
-              defaultChecked
-              name="mode"
-              type="radio"
-              value="chart"
-            />
-            <span aria-hidden="true" className="source-choice-mark" />
-            <span className="source-choice-copy">
-              <span className="source-choice-title">Chart</span>
-              <span className="source-choice-detail">
-                Bar or line chart with labelled numeric values.
-              </span>
-            </span>
-          </label>
-
-          <label className="source-choice">
-            <input
-              className="visually-hidden"
-              name="mode"
-              type="radio"
-              value="process"
-            />
-            <span aria-hidden="true" className="source-choice-mark" />
-            <span className="source-choice-copy">
-              <span className="source-choice-title">Process diagram</span>
-              <span className="source-choice-detail">
-                Labelled steps connected in a meaningful order.
-              </span>
-            </span>
-          </label>
-        </div>
-      </fieldset>
-    </section>
-  );
-}
-
-function SourceUploader() {
-  return (
-    <section aria-labelledby="upload-heading" className="source-upload">
-      <div className="studio-step-heading">
-        <h2 id="upload-heading">Source image</h2>
-        <p>One clear PNG, JPEG, or WebP.</p>
-      </div>
-
-      <label className="visually-hidden" htmlFor="visual-file">
-        Image file
-      </label>
-      <input
-        accept="image/png,image/jpeg,image/webp"
-        aria-describedby="upload-help preview-status"
-        className="visually-hidden"
-        disabled
-        id="visual-file"
-        type="file"
-      />
-
-      <div className="upload-editorial">
-        <span aria-hidden="true" className="upload-symbol">
-          +
-        </span>
-        <div className="upload-copy">
-          <strong>Drop an image here</strong>
-          <span id="upload-help">PNG, JPEG, or WebP · Up to 10 MB</span>
-        </div>
-        <button className="upload-choice" disabled type="button">
-          Choose a file
-        </button>
-      </div>
-
-      <div className="studio-actionbar">
-        <button className="button button-primary" disabled type="button">
-          Analyze source
-        </button>
-        <p className="preview-status" id="preview-status">
-          <span aria-hidden="true" />
-          Analysis is unavailable in this static preview.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-export function LessonStudioPage() {
+export function LessonStudioPage({
+  maxUploadBytes,
+}: {
+  maxUploadBytes?: number;
+}) {
   return (
     <main className="information-page studio-main" id="main-content" tabIndex={-1}>
       <div className="information-content studio-content">
@@ -535,25 +436,13 @@ export function LessonStudioPage() {
               <h1 id="studio-title">Create a lesson.</h1>
               <p>Start with one chart or process diagram.</p>
             </div>
-            <StudioProgress />
+            <WorkflowProgress />
           </div>
         </section>
 
         <section aria-label="Create an accessible lesson" className="studio-editor">
-          <div className="section-shell studio-workspace">
-            <div className="studio-source-grid">
-              <VisualTypeSelector />
-              <SourceUploader />
-            </div>
-            <div className="studio-notes">
-              <p>
-                <strong>Teacher review is required before export.</strong>
-              </p>
-              <p id="privacy">
-                When connected, your image is sent to OpenAI. Optiq does not
-                intentionally save uploaded images.
-              </p>
-            </div>
+          <div className="section-shell">
+            <LessonCreator maxUploadBytes={maxUploadBytes} />
           </div>
         </section>
       </div>
