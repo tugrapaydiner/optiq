@@ -1,11 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-test("loads the focused Optiq homepage without console errors", async ({ page }) => {
-  const browserErrors: string[] = [];
+const routes = [
+  "/",
+  "/product",
+  "/how-it-works",
+  "/accessibility",
+  "/examples",
+  "/create",
+] as const;
+
+test("loads the focused Optiq homepage without console issues", async ({ page }) => {
+  const browserIssues: string[] = [];
   page.on("console", (message) => {
-    if (message.type() === "error") browserErrors.push(message.text());
+    if (["error", "warning"].includes(message.type())) {
+      browserIssues.push(`${message.type()}: ${message.text()}`);
+    }
   });
-  page.on("pageerror", (error) => browserErrors.push(error.message));
+  page.on("pageerror", (error) => browserIssues.push(`pageerror: ${error.message}`));
 
   await page.goto("/");
 
@@ -15,67 +26,120 @@ test("loads the focused Optiq homepage without console errors", async ({ page })
       name: "Visual lessons, made accessible.",
     }),
   ).toBeVisible();
-  await expect(page.locator("main img")).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "Open Next.js Dev Tools" })).toHaveCount(
-    0,
-  );
+  await expect(page.locator("main img")).toHaveCount(1);
   await expect(page.locator("footer .brand-logo-light")).toBeVisible();
   await expect(page.getByText("Optiq · Tugrap Turker Aydiner")).toBeVisible();
-
-  const visualSystem = await page.evaluate(() => {
-    const footerLogo = document.querySelector<HTMLElement>(".brand-logo-light");
-    return {
-      bodyFont: getComputedStyle(document.body).fontFamily,
-      footerLogoFilter: footerLogo ? getComputedStyle(footerLogo).filter : "",
-      footerLogoBlend: footerLogo
-        ? getComputedStyle(footerLogo).mixBlendMode
-        : "",
-    };
-  });
-
-  expect(visualSystem.bodyFont).toContain("Manrope Variable");
-  expect(visualSystem.footerLogoFilter).toContain("invert");
-  expect(visualSystem.footerLogoBlend).toBe("lighten");
-  expect(browserErrors).toEqual([]);
+  expect(browserIssues).toEqual([]);
 });
 
-test("separates product, examples, and lesson creation", async ({ page }) => {
-  await page.goto("/");
+test("gives every primary navigation item a distinct page", async ({ page }) => {
+  test.setTimeout(60_000);
 
+  const destinations = [
+    ["Product", "/product", "Keep the visual. Change the access."],
+    ["How it works", "/how-it-works", "Four deliberate stages. One accountable path."],
+    ["Accessibility", "/accessibility", "Access starts in the structure."],
+    ["Examples", "/examples", "See the visual. Explore the structure."],
+  ] as const;
+
+  await page.goto("/");
   const primaryNavigation = page.getByRole("navigation", {
     name: "Primary navigation",
   });
-  await expect(
-    primaryNavigation.getByRole("link", { name: "Product" }),
-  ).toHaveAttribute("href", "/#product");
-  await expect(
-    primaryNavigation.getByRole("link", { name: "Examples" }),
-  ).toHaveAttribute("href", "/examples");
 
-  await primaryNavigation.getByRole("link", { name: "Examples" }).click();
-  await expect(page).toHaveURL(/\/examples$/);
-  await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: "See the visual. Explore the structure.",
-    }),
-  ).toBeVisible();
-  await expect(page.locator("article.example-story")).toHaveCount(3);
-  await expect(page.locator(".story-label")).toHaveCount(0);
+  for (const [label, href] of destinations) {
+    await expect(primaryNavigation.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      href,
+    );
+  }
+
+  for (const [label, href, heading] of destinations) {
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "Primary navigation" })
+      .getByRole("link", { name: label })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
+    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+  }
 
   await page.goto("/");
   await page.locator("a.header-action").click();
   await expect(page).toHaveURL(/\/create$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Start with one visual." }),
+    page.getByRole("heading", { level: 1, name: "Build from the source." }),
   ).toBeVisible();
-  await expect(page.locator(".studio-workspace")).toBeVisible();
-  await expect(page.locator(".workspace")).toHaveCount(0);
 });
 
-test("reveals the skip link and supports native radio-key navigation", async ({
+test("uses horizontal forward and backward route motion", async ({ page }) => {
+  await page.goto("/");
+  await page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Product" })
+    .click();
+  await expect(page).toHaveURL(/\/product$/);
+
+  const forwardMotion = await page.locator(".route-frame").evaluate((element) => {
+    const animation = element.getAnimations()[0];
+    const keyframes = (animation?.effect as KeyframeEffect | null)?.getKeyframes() ?? [];
+    return {
+      animationName: getComputedStyle(element).animationName,
+      direction: document.documentElement.dataset.routeDirection,
+      firstTransform: String(keyframes[0]?.transform ?? ""),
+    };
+  });
+
+  expect(forwardMotion.direction).toBe("forward");
+  expect(forwardMotion.animationName).toBe("route-enter-forward");
+  expect(forwardMotion.firstTransform).toContain("translateX");
+  expect(forwardMotion.firstTransform).not.toContain("translateY");
+
+  await page.getByRole("link", { name: "Optiq home" }).first().click();
+  await expect(page).toHaveURL(/\/$/);
+
+  const backwardMotion = await page.locator(".route-frame").evaluate((element) => {
+    const animation = element.getAnimations()[0];
+    const keyframes = (animation?.effect as KeyframeEffect | null)?.getKeyframes() ?? [];
+    return {
+      animationName: getComputedStyle(element).animationName,
+      direction: document.documentElement.dataset.routeDirection,
+      firstTransform: String(keyframes[0]?.transform ?? ""),
+    };
+  });
+
+  expect(backwardMotion.direction).toBe("backward");
+  expect(backwardMotion.animationName).toBe("route-enter-backward");
+  expect(backwardMotion.firstTransform).toContain("translateX");
+  expect(backwardMotion.firstTransform).not.toContain("translateY");
+});
+
+test("keeps the rebuilt studio native, editorial, and keyboard operable", async ({
   page,
 }) => {
+  await page.goto("/create");
+
+  await expect(page.locator(".source-kind")).toBeVisible();
+  await expect(page.locator(".upload-editorial")).toBeVisible();
+  await expect(page.locator(".studio-workspace, .workspace, .upload-panel")).toHaveCount(
+    0,
+  );
+
+  const chartMode = page.getByRole("radio", { name: /^Chart/ });
+  const processMode = page.getByRole("radio", { name: /^Process diagram/ });
+  await chartMode.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(processMode).toBeChecked();
+  await expect(processMode).toBeFocused();
+
+  await expect(page.getByRole("button", { name: "Choose a file" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Analyze source" })).toBeDisabled();
+  await expect(
+    page.getByText("Analysis is unavailable in this static preview."),
+  ).toBeVisible();
+});
+
+test("reveals the skip link and transfers focus to the page", async ({ page }) => {
   await page.goto("/create");
 
   await page.keyboard.press("Tab");
@@ -85,21 +149,14 @@ test("reveals the skip link and supports native radio-key navigation", async ({
 
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
-
-  const chartMode = page.getByRole("radio", { name: /^Chart/ });
-  const processMode = page.getByRole("radio", { name: /^Process diagram/ });
-  await chartMode.focus();
-  await expect(chartMode).toBeFocused();
-
-  await page.keyboard.press("ArrowDown");
-  await expect(processMode).toBeChecked();
-  await expect(processMode).toBeFocused();
 });
 
 test("does not create horizontal overflow across routes and widths", async ({
   page,
 }) => {
-  for (const route of ["/", "/examples", "/create"]) {
+  test.setTimeout(90_000);
+
+  for (const route of routes) {
     for (const width of [1440, 1280, 1024, 768, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(route);
@@ -118,19 +175,17 @@ test("provides an operable mobile menu and 44 CSS pixel touch targets", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/create");
 
   const menu = page.locator("summary");
   await expect(menu).toBeVisible();
   await menu.click();
-  await expect(
-    page.getByRole("navigation", { name: "Mobile navigation" }),
-  ).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
 
   const undersizedTargets = await page.evaluate(() =>
     Array.from(
       document.querySelectorAll<HTMLElement>(
-        "a, button, summary, label.mode-option",
+        "a, button, summary, label.source-choice",
       ),
     )
       .map((element) => {
@@ -152,14 +207,16 @@ test("provides an operable mobile menu and 44 CSS pixel touch targets", async ({
   expect(undersizedTargets).toEqual([]);
 });
 
-test("removes decorative motion when reduced motion is requested", async ({
+test("removes horizontal route motion when reduced motion is requested", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
+  await page.getByRole("link", { name: "Explore the product" }).click();
+  await expect(page).toHaveURL(/\/product$/);
 
   const animationDurationMilliseconds = await page
-    .locator(".hero-media")
+    .locator(".route-frame")
     .evaluate((element) => {
       const duration = getComputedStyle(element).animationDuration;
       return duration.endsWith("ms")

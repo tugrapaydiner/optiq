@@ -2,13 +2,58 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import {
+  AccessibilityPageShell,
   AppShell,
   ExamplesPageShell,
+  HowItWorksPageShell,
   LessonStudioPage,
+  ProductPageShell,
+  SiteFooter,
+  SiteHeader,
 } from "../../src/components/app-shell";
+import { setRouteTransitionDirection } from "../../src/components/transition-link";
+
+describe("site navigation", () => {
+  it("uses a real route for every primary destination", () => {
+    render(<SiteHeader />);
+
+    const primaryNavigation = screen.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    const primaryDestinations = within(primaryNavigation)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+
+    expect(primaryDestinations).toEqual([
+      "/product",
+      "/how-it-works",
+      "/accessibility",
+      "/examples",
+    ]);
+    expect(primaryDestinations.every((href) => !href?.includes("#"))).toBe(true);
+    expect(
+      screen.getAllByRole("link", { name: "Create a lesson" })[0],
+    ).toHaveAttribute("href", "/create");
+  });
+
+  it("uses the supplied logo and owner credit in the footer", () => {
+    render(<SiteFooter />);
+
+    expect(screen.getByText("Optiq · Tugrap Turker Aydiner")).toBeInTheDocument();
+    expect(document.querySelector(".brand-logo-light")).toBeInTheDocument();
+  });
+
+  it("sets forward and backward horizontal navigation intent", () => {
+    setRouteTransitionDirection("/", "/product");
+    expect(document.documentElement.dataset.routeDirection).toBe("forward");
+
+    setRouteTransitionDirection("/examples", "/how-it-works");
+    expect(document.documentElement.dataset.routeDirection).toBe("backward");
+  });
+});
 
 describe("AppShell", () => {
-  it("keeps the homepage focused on the product story", () => {
+  it("keeps the homepage focused and links to every main page", () => {
     render(<AppShell />);
 
     expect(
@@ -18,78 +63,69 @@ describe("AppShell", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Visual type" })).toBeNull();
-    expect(screen.getAllByRole("img")).toHaveLength(2);
-    expect(document.querySelectorAll(".brand-logo")).toHaveLength(2);
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+
+    const directory = screen.getByRole("navigation", { name: "Explore Optiq" });
+    expect(within(directory).getAllByRole("link")).toHaveLength(4);
   });
+});
 
-  it("uses distinct primary routes and anchors", () => {
-    render(<AppShell />);
-
-    const primaryNavigation = screen.getByRole("navigation", {
-      name: "Primary navigation",
-    });
-    const primaryLinks = within(primaryNavigation).getAllByRole("link");
-    const primaryDestinations = primaryLinks.map((link) =>
-      link.getAttribute("href"),
-    );
-
-    expect(primaryDestinations).toEqual([
-      "/#product",
-      "/#how-it-works",
-      "/#accessibility",
-      "/examples",
-    ]);
-    expect(new Set(primaryDestinations).size).toBe(primaryDestinations.length);
-    expect(screen.getAllByRole("link", { name: "Create a lesson" })[0]).toHaveAttribute(
-      "href",
-      "/create",
-    );
-  });
-
-  it("credits the owner and uses the supplied logo in the footer", () => {
-    render(<AppShell />);
-
-    expect(screen.getByText("Optiq · Tugrap Turker Aydiner")).toBeInTheDocument();
-    expect(document.querySelector(".brand-logo-light")).toBeInTheDocument();
+describe("dedicated information pages", () => {
+  it("renders distinct product, workflow, and accessibility destinations", () => {
+    const { rerender } = render(<ProductPageShell />);
     expect(
-      screen.queryByText("AI-assisted accessibility, reviewed by educators."),
-    ).toBeNull();
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Keep the visual. Change the access.",
+      }),
+    ).toBeInTheDocument();
+
+    rerender(<HowItWorksPageShell />);
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Four deliberate stages. One accountable path.",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(4);
+
+    rerender(<AccessibilityPageShell />);
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Access starts in the structure.",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Built around three commitments.")).toBeInTheDocument();
   });
 });
 
 describe("LessonStudioPage", () => {
-  it("keeps the native source controls and truthful preview state", () => {
+  it("uses the rebuilt editorial source controls and truthful preview state", () => {
     render(<LessonStudioPage />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Start with one visual." }),
+      screen.getByRole("heading", { level: 1, name: "Build from the source." }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("group", { name: "Visual type" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Visual type" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^Chart/ })).toBeChecked();
-    expect(
-      screen.getByRole("radio", { name: /^Process diagram/ }),
-    ).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Process diagram/ })).not.toBeChecked();
     expect(screen.getByLabelText("Image file")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Choose a file" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Analyze source" })).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Analyze source" }),
-    ).toBeDisabled();
-    expect(
-      screen.getByText("Analysis is not connected in this preview."),
+      screen.getByText("Analysis is unavailable in this static preview."),
     ).toBeInTheDocument();
   });
 
-  it("communicates progress and the review boundary", () => {
+  it("communicates progress and the teacher-review boundary", () => {
     render(<LessonStudioPage />);
 
     expect(
       screen.getByRole("list", { name: "Lesson creation progress" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Review required before export."),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Resolve uncertain details first/)).toBeInTheDocument();
+    expect(screen.getByText("Review is required.")).toBeInTheDocument();
+    expect(screen.getByText(/Uncertain details must be resolved/)).toBeInTheDocument();
   });
 });
 
@@ -104,24 +140,6 @@ describe("ExamplesPageShell", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("img")).toHaveLength(3);
-    expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "Every value becomes explorable.",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "Educators keep the final say.",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "Relationships stay connected.",
-      }),
-    ).toBeInTheDocument();
     expect(document.querySelector(".story-label")).toBeNull();
   });
 });

@@ -1,17 +1,16 @@
 import Image, { type StaticImageData } from "next/image";
-import Link from "next/link";
-import type { ReactNode } from "react";
 
 import chartExplorationImage from "../assets/images/optiq-chart-exploration.png";
 import diagramNavigationImage from "../assets/images/optiq-diagram-navigation.png";
 import heroImage from "../assets/images/optiq-hero-accessible-learning.png";
 import teacherReviewImage from "../assets/images/optiq-teacher-review.png";
 import optiqLogo from "../assets/logo.png";
+import { TransitionLink } from "./transition-link";
 
 const navigationItems = [
-  { href: "/#product", label: "Product" },
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#accessibility", label: "Accessibility" },
+  { href: "/product", label: "Product" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/accessibility", label: "Accessibility" },
   { href: "/examples", label: "Examples" },
 ] as const;
 
@@ -55,7 +54,7 @@ function BrandMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
         alt=""
         className={`brand-logo brand-logo-${tone}`}
         height={1086}
-        preload
+        loading={tone === "dark" ? "eager" : "lazy"}
         sizes={tone === "light" ? "240px" : "132px"}
         src={optiqLogo}
         width={1448}
@@ -64,37 +63,40 @@ function BrandMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
   );
 }
 
-function SiteHeader() {
+export function SiteHeader() {
   return (
     <header className="site-header" id="page-top">
       <div className="page-shell header-inner">
         <nav aria-label="Primary navigation" className="desktop-navigation">
           {navigationItems.map((item) => (
-            <Link href={item.href} key={item.href}>
+            <TransitionLink href={item.href} key={item.href}>
               {item.label}
-            </Link>
+            </TransitionLink>
           ))}
         </nav>
 
-        <Link aria-label="Optiq home" className="wordmark" href="/">
+        <TransitionLink aria-label="Optiq home" className="wordmark" href="/">
           <BrandMark />
-        </Link>
+        </TransitionLink>
 
-        <Link className="button button-primary header-action" href="/create">
+        <TransitionLink
+          className="button button-primary header-action"
+          href="/create"
+        >
           Create a lesson
-        </Link>
+        </TransitionLink>
 
         <details className="mobile-navigation">
           <summary>Menu</summary>
           <nav aria-label="Mobile navigation">
             {navigationItems.map((item) => (
-              <Link href={item.href} key={item.href}>
+              <TransitionLink href={item.href} key={item.href}>
                 {item.label}
-              </Link>
+              </TransitionLink>
             ))}
-            <Link className="button button-primary" href="/create">
+            <TransitionLink className="button button-primary" href="/create">
               Create a lesson
-            </Link>
+            </TransitionLink>
           </nav>
         </details>
       </div>
@@ -102,50 +104,39 @@ function SiteHeader() {
   );
 }
 
-function SiteFooter() {
+export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="page-shell footer-inner">
         <div className="footer-mission">
-          <Link aria-label="Optiq home" className="footer-brand" href="/">
+          <TransitionLink aria-label="Optiq home" className="footer-brand" href="/">
             <BrandMark tone="light" />
-          </Link>
+          </TransitionLink>
           <p>Accessible learning from charts and process diagrams.</p>
         </div>
 
         <div className="footer-links">
           <nav aria-labelledby="footer-product-heading">
             <h2 id="footer-product-heading">Product</h2>
-            <Link href="/#product">Product</Link>
-            <Link href="/#how-it-works">How it works</Link>
-            <Link href="/#accessibility">Accessibility</Link>
-            <Link href="/examples">Examples</Link>
+            <TransitionLink href="/product">Product</TransitionLink>
+            <TransitionLink href="/how-it-works">How it works</TransitionLink>
+            <TransitionLink href="/accessibility">Accessibility</TransitionLink>
+            <TransitionLink href="/examples">Examples</TransitionLink>
           </nav>
           <nav aria-labelledby="footer-explore-heading">
             <h2 id="footer-explore-heading">Explore</h2>
-            <Link href="/create">Create a lesson</Link>
-            <Link href="/examples#charts">Charts</Link>
-            <Link href="/examples#process-diagrams">Process diagrams</Link>
-            <Link href="/create#privacy">Privacy approach</Link>
+            <TransitionLink href="/create">Create a lesson</TransitionLink>
+            <TransitionLink href="/examples#charts">Charts</TransitionLink>
+            <TransitionLink href="/examples#process-diagrams">
+              Process diagrams
+            </TransitionLink>
+            <TransitionLink href="/create#privacy">Privacy approach</TransitionLink>
           </nav>
         </div>
 
         <p className="footer-bottom">Optiq · Tugrap Turker Aydiner</p>
       </div>
     </footer>
-  );
-}
-
-function SitePage({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <Link className="skip-link" href="#main-content">
-        Skip to main content
-      </Link>
-      <SiteHeader />
-      {children}
-      <SiteFooter />
-    </>
   );
 }
 
@@ -177,12 +168,12 @@ function EditorialHero() {
           and explore.
         </p>
         <div className="button-row">
-          <Link className="button button-primary" href="/create">
+          <TransitionLink className="button button-primary" href="/create">
             Create a lesson
-          </Link>
-          <Link className="button button-secondary" href="/#how-it-works">
-            See how it works
-          </Link>
+          </TransitionLink>
+          <TransitionLink className="button button-secondary" href="/product">
+            Explore the product
+          </TransitionLink>
         </div>
         <p className="quiet-note">AI drafts. Educators decide.</p>
       </section>
@@ -190,131 +181,50 @@ function EditorialHero() {
   );
 }
 
-function ProductOverview() {
+function HomeIndex() {
   return (
-    <section
-      aria-labelledby="product-heading"
-      className="product-overview"
-      id="product"
-    >
-      <div className="section-shell">
-        <div className="section-introduction product-introduction">
-          <h2 id="product-heading">
-            <span>Keep the structure.</span>{" "}
-            <span className="muted-heading">Open more ways in.</span>
+    <section aria-labelledby="home-index-heading" className="home-index">
+      <div className="section-shell home-index-grid">
+        <div>
+          <h2 id="home-index-heading">
+            <span>See Optiq</span>{" "}
+            <span className="muted-heading">from every angle.</span>
           </h2>
-          <p className="body-large">
-            Exact data, ordered relationships, and teacher control stay part of
-            the lesson.
-          </p>
+          <p className="body-large">Each part now has room to breathe.</p>
         </div>
-
-        <div className="product-overview-grid">
-          <div className="product-overview-image-frame">
-            <Image
-              alt="An educator reviews lesson materials, charts, and notes beside a laptop."
-              className="product-overview-image"
-              height={1086}
-              sizes="(max-width: 900px) calc(100vw - 32px), 65vw"
-              src={teacherReviewImage}
-              width={1448}
-            />
-          </div>
-
-          <dl className="product-capabilities">
-            <div>
-              <dt>Exact values</dt>
-              <dd>Native tables preserve the information students need.</dd>
-            </div>
-            <div>
-              <dt>Clear order</dt>
-              <dd>Process steps remain connected and keyboard navigable.</dd>
-            </div>
-            <div>
-              <dt>Human review</dt>
-              <dd>Educators correct the draft before anything is exported.</dd>
-            </div>
-          </dl>
-        </div>
-
-        <Link className="text-link" href="/examples">
-          Explore the examples <span aria-hidden="true">↗</span>
-        </Link>
+        <nav aria-label="Explore Optiq" className="page-directory">
+          {navigationItems.map((item, index) => (
+            <TransitionLink href={item.href} key={item.href}>
+              <span aria-hidden="true">0{index + 1}</span>
+              <strong>{item.label}</strong>
+              <span aria-hidden="true">→</span>
+            </TransitionLink>
+          ))}
+        </nav>
       </div>
     </section>
   );
 }
 
-function HowItWorks() {
+function PageHero({
+  copy,
+  headingId,
+  muted,
+  primary,
+}: {
+  copy: string;
+  headingId: string;
+  muted: string;
+  primary: string;
+}) {
   return (
-    <section
-      aria-labelledby="how-heading"
-      className="how-it-works"
-      id="how-it-works"
-    >
+    <section aria-labelledby={headingId} className="subpage-hero">
       <div className="section-shell">
-        <div className="section-introduction how-introduction">
-          <h2 id="how-heading">
-            <span>One clear path,</span>{" "}
-            <span className="muted-heading">from visual to lesson.</span>
-          </h2>
-          <Link className="button button-primary" href="/create">
-            Open the studio
-          </Link>
-        </div>
-
-        <ol className="journey-list">
-          <li>
-            <strong>Add one visual.</strong>
-            <span>Chart or process diagram.</span>
-          </li>
-          <li>
-            <strong>Review the draft.</strong>
-            <span>Correct labels, values, and order.</span>
-          </li>
-          <li>
-            <strong>Share with confidence.</strong>
-            <span>Export only after teacher review.</span>
-          </li>
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-function AccessibilityPrinciples() {
-  return (
-    <section
-      aria-labelledby="accessibility-heading"
-      className="accessibility-principles"
-      id="accessibility"
-    >
-      <div className="section-shell">
-        <div className="section-introduction principle-introduction">
-          <h2 id="accessibility-heading">
-            <span>Accessibility is not</span>{" "}
-            <span className="muted-heading">a final checkbox.</span>
-          </h2>
-          <p className="body-large">
-            Uncertainty stays visible. Educators stay in control. Students get
-            more than a single description.
-          </p>
-        </div>
-
-        <dl className="principle-list">
-          <div>
-            <dt>Exact information</dt>
-            <dd>Values, labels, units, and relationships stay structured.</dd>
-          </div>
-          <div>
-            <dt>Teacher control</dt>
-            <dd>Educators correct the lesson before it is exported.</dd>
-          </div>
-          <div>
-            <dt>Multiple ways to explore</dt>
-            <dd>Use text, tables, keyboard navigation, and optional sound.</dd>
-          </div>
-        </dl>
+        <h1 id={headingId}>
+          <span>{primary}</span>{" "}
+          <span className="muted-heading">{muted}</span>
+        </h1>
+        <p className="body-large">{copy}</p>
       </div>
     </section>
   );
@@ -330,40 +240,212 @@ function FinalCallToAction() {
         </h2>
         <p className="body-large">Start with one clear image.</p>
         <div className="button-row">
-          <Link className="button button-primary" href="/create">
+          <TransitionLink className="button button-primary" href="/create">
             Create a lesson
-          </Link>
-          <Link className="button button-secondary" href="/examples">
+          </TransitionLink>
+          <TransitionLink className="button button-secondary" href="/examples">
             View examples
-          </Link>
+          </TransitionLink>
         </div>
       </div>
     </section>
   );
 }
 
-function WorkflowProgress() {
+export function AppShell() {
   return (
-    <ol aria-label="Lesson creation progress" className="workflow-progress">
-      <li aria-current="step">
-        <span className="visually-hidden">Current step: </span>
-        Source
-      </li>
-      <li>Review</li>
-      <li>Preview</li>
-      <li>Export</li>
+    <main id="main-content" tabIndex={-1}>
+      <EditorialHero />
+      <HomeIndex />
+      <FinalCallToAction />
+    </main>
+  );
+}
+
+export function ProductPageShell() {
+  return (
+    <main id="main-content" tabIndex={-1}>
+      <PageHero
+        copy="Optiq keeps exact information and human judgment inside the accessible lesson."
+        headingId="product-title"
+        muted="Change the access."
+        primary="Keep the visual."
+      />
+
+      <section aria-label="Optiq product capabilities" className="feature-spread">
+        <div className="section-shell feature-spread-grid">
+          <div className="feature-image-frame">
+            <Image
+              alt="A learner wearing headphones explores chart information beside a laptop and printed graphs."
+              className="feature-image"
+              height={1086}
+              sizes="(max-width: 900px) calc(100vw - 32px), 62vw"
+              src={chartExplorationImage}
+              width={1448}
+            />
+          </div>
+          <dl className="feature-list">
+            <div>
+              <dt>Exact values</dt>
+              <dd>Chart data remains available in a native table.</dd>
+            </div>
+            <div>
+              <dt>Clear relationships</dt>
+              <dd>Process steps keep their direction and reading order.</dd>
+            </div>
+            <div>
+              <dt>More ways to explore</dt>
+              <dd>Students can use text, keyboard navigation, and optional sound.</dd>
+            </div>
+            <div>
+              <dt>Teacher control</dt>
+              <dd>Every draft is reviewed before standalone export.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <FinalCallToAction />
+    </main>
+  );
+}
+
+const workflowStages = [
+  {
+    body: "Choose chart or process diagram, then add one clear image.",
+    title: "Source",
+  },
+  {
+    body: "Optiq structures what is visible and surfaces uncertainty.",
+    title: "Review",
+  },
+  {
+    body: "Check the table, reading order, keyboard flow, and optional sound.",
+    title: "Preview",
+  },
+  {
+    body: "Create standalone HTML only after teacher review is complete.",
+    title: "Export",
+  },
+] as const;
+
+export function HowItWorksPageShell() {
+  return (
+    <main id="main-content" tabIndex={-1}>
+      <PageHero
+        copy="A short workflow keeps interpretation visible and educators in control."
+        headingId="how-title"
+        muted="One accountable path."
+        primary="Four deliberate stages."
+      />
+
+      <section aria-labelledby="workflow-detail-heading" className="workflow-detail">
+        <div className="section-shell">
+          <div className="workflow-image-frame">
+            <Image
+              alt="A learner arranges connected process steps while working beside a laptop."
+              className="workflow-image"
+              height={1086}
+              sizes="(max-width: 900px) calc(100vw - 32px), calc(100vw - 64px)"
+              src={diagramNavigationImage}
+              width={1448}
+            />
+          </div>
+          <h2 className="visually-hidden" id="workflow-detail-heading">
+            Lesson creation stages
+          </h2>
+          <ol className="workflow-rows">
+            {workflowStages.map((stage, index) => (
+              <li key={stage.title}>
+                <span aria-hidden="true">0{index + 1}</span>
+                <h3>{stage.title}</h3>
+                <p>{stage.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <FinalCallToAction />
+    </main>
+  );
+}
+
+export function AccessibilityPageShell() {
+  return (
+    <main id="main-content" tabIndex={-1}>
+      <PageHero
+        copy="Structured information, visible uncertainty, and teacher review shape the experience from the beginning."
+        headingId="accessibility-title"
+        muted="in the structure."
+        primary="Access starts"
+      />
+
+      <section aria-labelledby="principles-heading" className="principles-page">
+        <div className="section-shell principles-layout">
+          <div className="principles-image-frame">
+            <Image
+              alt="An educator reviews lesson materials, charts, and notes beside a laptop."
+              className="principles-image"
+              height={1086}
+              sizes="(max-width: 900px) calc(100vw - 32px), 58vw"
+              src={teacherReviewImage}
+              width={1448}
+            />
+          </div>
+          <div>
+            <h2 id="principles-heading">Built around three commitments.</h2>
+            <dl className="principle-list principle-list-stacked">
+              <div>
+                <dt>Exact information</dt>
+                <dd>Values, labels, units, and relationships stay structured.</dd>
+              </div>
+              <div>
+                <dt>Teacher control</dt>
+                <dd>Educators correct the lesson before it is exported.</dd>
+              </div>
+              <div>
+                <dt>Multiple ways to explore</dt>
+                <dd>Use text, tables, keyboard navigation, and optional sound.</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <FinalCallToAction />
+    </main>
+  );
+}
+
+function StudioProgress() {
+  return (
+    <ol aria-label="Lesson creation progress" className="studio-progress">
+      {workflowStages.map((stage, index) => (
+        <li aria-current={index === 0 ? "step" : undefined} key={stage.title}>
+          <span aria-hidden="true">0{index + 1}</span>
+          <strong>{stage.title}</strong>
+        </li>
+      ))}
     </ol>
   );
 }
 
 function VisualTypeSelector() {
   return (
-    <section aria-labelledby="visual-type-heading" className="visual-type-panel">
-      <h2 id="visual-type-heading">Choose the visual</h2>
+    <section aria-labelledby="visual-type-heading" className="source-kind">
+      <div className="studio-section-heading">
+        <span aria-hidden="true">01</span>
+        <div>
+          <h2 id="visual-type-heading">What does the image show?</h2>
+          <p>Choose the structure students need to explore.</p>
+        </div>
+      </div>
+
       <fieldset>
         <legend>Visual type</legend>
-        <div className="mode-grid">
-          <label className="mode-option">
+        <div className="source-choice-list">
+          <label className="source-choice">
             <input
               className="visually-hidden"
               defaultChecked
@@ -371,32 +453,34 @@ function VisualTypeSelector() {
               type="radio"
               value="chart"
             />
-            <span aria-hidden="true" className="selector-check">
-              ✓
+            <span aria-hidden="true" className="source-choice-number">
+              A
             </span>
-            <span className="mode-copy">
-              <span className="mode-title">Chart</span>
-              <span className="mode-description">
-                Bar or line chart with numeric values.
-              </span>
+            <span className="source-choice-copy">
+              <span className="source-choice-title">Chart</span>
+              <span>Bar or line chart with labelled numeric values.</span>
+            </span>
+            <span aria-hidden="true" className="source-choice-state">
+              Selected
             </span>
           </label>
 
-          <label className="mode-option">
+          <label className="source-choice">
             <input
               className="visually-hidden"
               name="mode"
               type="radio"
               value="process"
             />
-            <span aria-hidden="true" className="selector-check">
-              ✓
+            <span aria-hidden="true" className="source-choice-number">
+              B
             </span>
-            <span className="mode-copy">
-              <span className="mode-title">Process diagram</span>
-              <span className="mode-description">
-                Labelled steps in a meaningful order.
-              </span>
+            <span className="source-choice-copy">
+              <span className="source-choice-title">Process diagram</span>
+              <span>Labelled steps connected in a meaningful order.</span>
+            </span>
+            <span aria-hidden="true" className="source-choice-state">
+              Choose
             </span>
           </label>
         </div>
@@ -407,9 +491,14 @@ function VisualTypeSelector() {
 
 function SourceUploader() {
   return (
-    <section aria-labelledby="upload-heading" className="upload-panel">
-      <h2 id="upload-heading">Add the image</h2>
-      <p id="upload-help">PNG, JPEG, or WebP · Up to 10 MB</p>
+    <section aria-labelledby="upload-heading" className="source-upload">
+      <div className="studio-section-heading">
+        <span aria-hidden="true">02</span>
+        <div>
+          <h2 id="upload-heading">Add one clear source.</h2>
+          <p>Use a readable image without sensitive or student-identifying content.</p>
+        </div>
+      </div>
 
       <label className="visually-hidden" htmlFor="visual-file">
         Image file
@@ -423,22 +512,28 @@ function SourceUploader() {
         type="file"
       />
 
-      <div className="upload-surface">
-        <span aria-hidden="true" className="upload-mark">
-          +
-        </span>
-        <strong>Drop it here</strong>
-        <span>or choose from your device</span>
-        <span className="inactive-file-action">Choose a file</span>
+      <div className="upload-editorial">
+        <div className="upload-copy">
+          <span aria-hidden="true" className="upload-symbol">
+            +
+          </span>
+          <div>
+            <strong>Drop an image here</strong>
+            <span id="upload-help">PNG, JPEG, or WebP · Up to 10 MB</span>
+          </div>
+        </div>
+        <button className="upload-choice" disabled type="button">
+          Choose a file
+        </button>
       </div>
 
-      <div className="analysis-actions">
+      <div className="studio-actionbar">
         <button className="button button-primary" disabled type="button">
           Analyze source
         </button>
         <p className="preview-status" id="preview-status">
           <span aria-hidden="true" />
-          Analysis is not connected in this preview.
+          Analysis is unavailable in this static preview.
         </p>
       </div>
     </section>
@@ -447,45 +542,37 @@ function SourceUploader() {
 
 export function LessonStudioPage() {
   return (
-    <SitePage>
-      <main className="studio-main" id="main-content" tabIndex={-1}>
-        <section aria-labelledby="studio-title" className="studio-hero">
-          <div className="section-shell studio-introduction">
-            <h1 id="studio-title">
-              <span>Start with</span>{" "}
-              <span className="muted-heading">one visual.</span>
-            </h1>
-            <p className="body-large">
-              Choose a chart or process diagram, then add one clear image.
+    <main className="studio-main" id="main-content" tabIndex={-1}>
+      <section aria-labelledby="studio-title" className="studio-editorial-hero">
+        <div className="section-shell studio-title-grid">
+          <h1 id="studio-title">
+            <span>Build from</span>{" "}
+            <span className="muted-heading">the source.</span>
+          </h1>
+          <p className="body-large">
+            One visual. A structured draft. Teacher review before export.
+          </p>
+        </div>
+      </section>
+
+      <section aria-label="Create an accessible lesson" className="studio-editor">
+        <div className="section-shell">
+          <StudioProgress />
+          <VisualTypeSelector />
+          <SourceUploader />
+          <div className="studio-notes">
+            <p>
+              <strong>Review is required.</strong> Uncertain details must be resolved
+              before standalone export.
+            </p>
+            <p id="privacy">
+              When connected, your image is sent to OpenAI. Optiq does not
+              intentionally save uploaded images.
             </p>
           </div>
-        </section>
-
-        <section
-          aria-label="Create an accessible lesson"
-          className="studio-section"
-          id="create"
-        >
-          <div className="section-shell">
-            <WorkflowProgress />
-            <div className="studio-workspace">
-              <VisualTypeSelector />
-              <SourceUploader />
-            </div>
-            <div className="studio-footnotes">
-              <p>
-                <strong>Review required before export.</strong> Resolve uncertain
-                details first.
-              </p>
-              <p id="privacy">
-                When connected, images are sent to OpenAI under applicable API
-                data controls. Optiq does not save the upload.
-              </p>
-            </div>
-          </div>
-        </section>
-      </main>
-    </SitePage>
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -518,45 +605,23 @@ function ExampleStory({
 
 export function ExamplesPageShell() {
   return (
-    <SitePage>
-      <main id="main-content" tabIndex={-1}>
-        <section aria-labelledby="examples-title" className="subpage-hero">
-          <div className="section-shell">
-            <h1 id="examples-title">
-              <span>See the visual.</span>{" "}
-              <span className="muted-heading">Explore the structure.</span>
-            </h1>
-            <p className="body-large">
-              Three ways Optiq turns visual information into an accessible
-              learning experience.
-            </p>
-          </div>
-        </section>
+    <main id="main-content" tabIndex={-1}>
+      <PageHero
+        copy="Three views of the same idea: preserve the information, then open more ways to explore it."
+        headingId="examples-title"
+        muted="Explore the structure."
+        primary="See the visual."
+      />
 
-        <section aria-label="Optiq examples" className="examples-page">
-          <div className="section-shell">
-            {productStories.map((story) => (
-              <ExampleStory key={story.id} {...story} />
-            ))}
-          </div>
-        </section>
+      <section aria-label="Optiq examples" className="examples-page">
+        <div className="section-shell">
+          {productStories.map((story) => (
+            <ExampleStory key={story.id} {...story} />
+          ))}
+        </div>
+      </section>
 
-        <FinalCallToAction />
-      </main>
-    </SitePage>
-  );
-}
-
-export function AppShell() {
-  return (
-    <SitePage>
-      <main id="main-content" tabIndex={-1}>
-        <EditorialHero />
-        <ProductOverview />
-        <HowItWorks />
-        <AccessibilityPrinciples />
-        <FinalCallToAction />
-      </main>
-    </SitePage>
+      <FinalCallToAction />
+    </main>
   );
 }
