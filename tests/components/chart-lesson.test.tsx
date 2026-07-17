@@ -1,11 +1,49 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ChartLessonView } from "@/components/chart-lesson";
+import type {
+  AudioPlaybackCallbacks,
+  AudioPlayer,
+} from "@/lib/audio-player";
 import type { ChartLesson } from "@/lib/contracts/chart";
+import type { SonificationTimelinePoint } from "@/lib/sonification";
 import { makeChartLesson, makeUnsupportedChartLesson } from "../contracts/test-lessons";
 import multiSeriesFixture from "../../fixtures/gold/chart-bar-02.json";
+
+class FakeAudioPlayer implements AudioPlayer {
+  callbacks: AudioPlaybackCallbacks | null = null;
+  disposeCount = 0;
+  readonly playCalls: SonificationTimelinePoint[][] = [];
+  stopCount = 0;
+
+  dispose(): void {
+    this.disposeCount += 1;
+  }
+
+  emitComplete(): void {
+    this.callbacks?.onComplete();
+  }
+
+  emitPoint(pointIndex: number): void {
+    this.callbacks?.onPoint(pointIndex);
+  }
+
+  play(
+    timeline: readonly SonificationTimelinePoint[],
+    callbacks: AudioPlaybackCallbacks,
+  ): Promise<void> {
+    this.playCalls.push([...timeline]);
+    this.callbacks = callbacks;
+    return Promise.resolve();
+  }
+
+  stop(): void {
+    this.stopCount += 1;
+    this.callbacks = null;
+  }
+}
 
 function renderLesson(lesson: ChartLesson = makeChartLesson()) {
   return render(
@@ -84,7 +122,7 @@ describe("ChartLessonView", () => {
     expect(container.querySelector("script")).toBeNull();
     expect(container.querySelector('img[src="x"]')).toBeNull();
     expect(container.querySelector("svg")).toBeNull();
-    expect(container.querySelectorAll("button")).toHaveLength(2);
+    expect(container.querySelectorAll("button")).toHaveLength(4);
   });
 
   it("uses predictable non-wrapping buttons and one explicit live update", async () => {
@@ -94,7 +132,9 @@ describe("ChartLessonView", () => {
     const previous = screen.getByRole("button", { name: "Previous point" });
     const next = screen.getByRole("button", { name: "Next point" });
     const announcement = screen.getByTestId("point-announcement");
-    const readout = screen.getByText(/Visits — Jan — 120 visits/).closest("div");
+    const readout = screen
+      .getByText(/Visits — Jan — 120 visits/)
+      .closest<HTMLElement>(".point-readout");
     expect(readout).not.toBeNull();
     expect(previous).toBeDisabled();
     expect(next).toBeEnabled();
@@ -119,7 +159,7 @@ describe("ChartLessonView", () => {
     renderLesson();
     const readout = screen
       .getByText(/Visits — Jan — 120 visits — point 1 of 2/)
-      .closest("div");
+      .closest<HTMLElement>(".point-readout");
     expect(readout).not.toBeNull();
 
     fireEvent.keyDown(document.body, { key: "ArrowRight" });
@@ -137,7 +177,9 @@ describe("ChartLessonView", () => {
   it("resets to the first point when the series changes", async () => {
     const user = userEvent.setup();
     renderLesson(multiSeriesFixture as ChartLesson);
-    const readout = screen.getByText(/Bean — Low — 8 cm/).closest("div");
+    const readout = screen
+      .getByText(/Bean — Low — 8 cm/)
+      .closest<HTMLElement>(".point-readout");
     expect(readout).not.toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Next point" }));
@@ -148,6 +190,142 @@ describe("ChartLessonView", () => {
     expect(screen.getByTestId("point-announcement")).toHaveTextContent(
       "Pea — Low — 6 cm — point 1 of 4",
     );
+    expect(screen.getByTestId("audio-announcement")).toBeEmptyDOMElement();
+  });
+
+  it("creates audio only on keyboard Play and keeps timed updates out of live regions", async () => {
+    const user = userEvent.setup();
+    const player = new FakeAudioPlayer();
+    const factory = vi.fn(() => player);
+    render(
+      <ChartLessonView
+        audioPlayerFactory={factory}
+        lesson={makeChartLesson()}
+        sourceLabel="Built-in sample draft"
+      />,
+    );
+
+    const play = screen.getByRole("button", { name: "Play series" });
+    const stop = screen.getByRole("button", { name: "Stop" });
+    expect(factory).not.toHaveBeenCalled();
+    expect(stop).toBeDisabled();
+
+    play.focus();
+    await user.keyboard("{Enter}");
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(player.stopCount).toBe(1);
+    expect(player.playCalls).toHaveLength(1);
+    expect(player.playCalls[0]!.map(({ midi }) => midi)).toEqual([48, 84]);
+    expect(stop).toBeEnabled();
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Playing Visits — point 1 of 2.",
+    );
+    expect(screen.getByTestId("audio-announcement")).toHaveTextContent(
+      "Playback started for Visits.",
+    );
+    expect(screen.getByTestId("point-announcement")).toBeEmptyDOMElement();
+
+    act(() => player.emitPoint(1));
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Playing Visits — point 2 of 2.",
+    );
+    expect(screen.getByText(/Visits — Feb — 165 visits — point 2 of 2/)).toBeVisible();
+    expect(screen.getByTestId("point-announcement")).toBeEmptyDOMElement();
+    expect(screen.getByTestId("audio-announcement")).toHaveTextContent(
+      "Playback started for Visits.",
+    );
+
+    stop.focus();
+    await user.keyboard("{Enter}");
+    expect(player.stopCount).toBe(2);
+    expect(stop).toBeDisabled();
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Playback stopped.",
+    );
+    expect(screen.getByTestId("audio-announcement")).toHaveTextContent(
+      "Playback stopped.",
+    );
+  });
+
+  it("restarts without overlap, completes quietly, and stops on series change", async () => {
+    const user = userEvent.setup();
+    const player = new FakeAudioPlayer();
+    render(
+      <ChartLessonView
+        audioPlayerFactory={() => player}
+        lesson={multiSeriesFixture as ChartLesson}
+        sourceLabel="Built-in sample draft"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Play series" }));
+    await user.click(screen.getByRole("button", { name: "Restart series" }));
+    expect(player.stopCount).toBe(2);
+    expect(player.playCalls).toHaveLength(2);
+    expect(screen.getByTestId("audio-announcement")).toHaveTextContent(
+      "Playback restarted for Bean.",
+    );
+
+    act(() => player.emitComplete());
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Playback complete for Bean.",
+    );
+    expect(screen.getByRole("button", { name: "Stop" })).toBeDisabled();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Series" }), "1");
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Ready to play Pea.",
+    );
+    expect(screen.getByTestId("audio-announcement")).toBeEmptyDOMElement();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Series" }), "0");
+
+    await user.click(screen.getByRole("button", { name: "Play series" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Series" }), "1");
+    expect(player.stopCount).toBe(6);
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Ready to play Pea.",
+    );
+    expect(screen.getByTestId("point-announcement")).toHaveTextContent(
+      "Pea — Low — 6 cm — point 1 of 4",
+    );
+  });
+
+  it("disposes active audio when the lesson changes or the component unmounts", async () => {
+    const user = userEvent.setup();
+    const firstPlayer = new FakeAudioPlayer();
+    const secondPlayer = new FakeAudioPlayer();
+    const factory = vi
+      .fn<() => AudioPlayer>()
+      .mockReturnValueOnce(firstPlayer)
+      .mockReturnValueOnce(secondPlayer);
+    const firstLesson = makeChartLesson();
+    const secondLesson = makeChartLesson();
+    secondLesson.series[0]!.points[0]!.value = 999;
+
+    const { rerender, unmount } = render(
+      <ChartLessonView
+        audioPlayerFactory={factory}
+        lesson={firstLesson}
+        sourceLabel="Built-in sample draft"
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Play series" }));
+
+    rerender(
+      <ChartLessonView
+        audioPlayerFactory={factory}
+        lesson={secondLesson}
+        sourceLabel="Built-in sample draft"
+      />,
+    );
+    expect(firstPlayer.disposeCount).toBe(1);
+    expect(screen.getByTestId("sonification-status")).toHaveTextContent(
+      "Ready to play Visits.",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Play series" }));
+    unmount();
+    expect(secondPlayer.disposeCount).toBe(1);
   });
 
   it("renders no lesson output for an unsupported lesson", () => {

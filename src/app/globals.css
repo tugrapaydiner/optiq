@@ -1555,6 +1555,12 @@ html[data-route-direction="backward"] .route-frame {
   background: var(--accent-soft);
   border: 1px solid transparent;
   border-radius: 12px;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.point-readout[data-playback-active="true"] {
+  background: #cfddda;
+  border-color: var(--accent);
 }
 
 .point-readout p {
@@ -1562,6 +1568,16 @@ html[data-route-direction="backward"] .route-frame {
   font-size: 1rem;
   font-weight: 680;
   line-height: 1.45;
+}
+
+.audio-current-marker {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .point-controls {
@@ -1587,6 +1603,46 @@ html[data-route-direction="backward"] .route-frame {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.sonification-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem 1.25rem;
+  align-items: end;
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.sonification-copy p {
+  max-width: 36rem;
+  margin: 0.25rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.sonification-copy .chart-section-label {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.sonification-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.sonification-actions .button {
+  min-height: 2.75rem;
+}
+
+.sonification-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 /* Footer */
@@ -1957,6 +2013,19 @@ html[data-route-direction="backward"] .route-frame {
   .point-controls .button {
     width: 100%;
   }
+
+  .sonification-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sonification-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sonification-actions .button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 27rem) {
@@ -1992,6 +2061,7 @@ html[data-route-direction="backward"] .route-frame {
   .upload-editorial,
   .chart-table-scroll,
   .point-readout,
+  .sonification-controls,
   .mobile-navigation nav {
     border: 1px solid CanvasText;
   }

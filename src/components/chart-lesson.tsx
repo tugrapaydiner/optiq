@@ -1,15 +1,28 @@
 "use client";
 
-import { useId, useState, type KeyboardEvent, type Ref } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type Ref,
+} from "react";
 
+import {
+  WebAudioPlayer,
+  type AudioPlayer,
+} from "@/lib/audio-player";
 import type {
   ChartLesson,
   ChartPoint,
   ChartSeries,
 } from "@/lib/contracts/chart";
 import type { ReviewStatus } from "@/lib/contracts/common";
+import { buildSonificationTimeline } from "@/lib/sonification";
 
 type ChartLessonViewProps = {
+  audioPlayerFactory?: () => AudioPlayer;
   headingRef?: Ref<HTMLHeadingElement>;
   lesson: ChartLesson;
   sourceLabel: string;
@@ -20,6 +33,8 @@ const STATUS_LABELS: Readonly<Record<ReviewStatus, string>> = {
   inferred_from_layout: "Inferred from layout",
   verified_visible_text: "Verified visible text",
 };
+
+const createWebAudioPlayer = () => new WebAudioPlayer();
 
 function includesUnit(value: string, unit: string): boolean {
   return value.toLocaleLowerCase().includes(unit.toLocaleLowerCase());
@@ -63,14 +78,84 @@ function currentPointText(
   return `${series.label} — ${point.xLabel} — ${formatChartValue(point, unit)} — point ${pointIndex + 1} of ${series.points.length}`;
 }
 
-function PointExplorer({ lesson }: { lesson: ChartLesson }) {
+type PlaybackState = "complete" | "error" | "idle" | "playing" | "stopped";
+
+function PointExplorer({
+  audioPlayerFactory,
+  lesson,
+}: {
+  audioPlayerFactory: () => AudioPlayer;
+  lesson: ChartLesson;
+}) {
   const headingId = useId();
   const helpId = useId();
   const [seriesIndex, setSeriesIndex] = useState(0);
   const [pointIndex, setPointIndex] = useState(0);
   const [announcement, setAnnouncement] = useState("");
+  const [audioAnnouncement, setAudioAnnouncement] = useState("");
+  const [playbackState, setPlaybackState] = useState<PlaybackState>("idle");
+  const audioPlayerRef = useRef<AudioPlayer | null>(null);
+  const playbackGenerationRef = useRef(0);
   const series = lesson.series[seriesIndex]!;
   const currentText = currentPointText(series, pointIndex, lesson.yAxis.unit);
+  const isPlaying = playbackState === "playing";
+
+  useEffect(
+    () => () => {
+      playbackGenerationRef.current += 1;
+      audioPlayerRef.current?.dispose();
+      audioPlayerRef.current = null;
+    },
+    [],
+  );
+
+  function stopPlayback(): void {
+    const wasPlaying = playbackState === "playing";
+    playbackGenerationRef.current += 1;
+    audioPlayerRef.current?.stop();
+    if (wasPlaying) {
+      setPlaybackState("stopped");
+      setAudioAnnouncement("Playback stopped.");
+    }
+  }
+
+  async function playSeries(): Promise<void> {
+    const isRestart = playbackState === "playing";
+    const player = audioPlayerRef.current ?? audioPlayerFactory();
+    audioPlayerRef.current = player;
+    playbackGenerationRef.current += 1;
+    const generation = playbackGenerationRef.current;
+    player.stop();
+    setPointIndex(0);
+    setPlaybackState("playing");
+    setAudioAnnouncement(
+      `Playback ${isRestart ? "restarted" : "started"} for ${series.label}.`,
+    );
+
+    try {
+      await player.play(
+        buildSonificationTimeline(series.points.map(({ value }) => value)),
+        {
+          onComplete: () => {
+            if (generation !== playbackGenerationRef.current) return;
+            setPlaybackState("complete");
+            setAudioAnnouncement(`Playback complete for ${series.label}.`);
+          },
+          onPoint: (nextPointIndex) => {
+            if (generation !== playbackGenerationRef.current) return;
+            setPointIndex(nextPointIndex);
+          },
+        },
+      );
+    } catch {
+      if (generation !== playbackGenerationRef.current) return;
+      player.stop();
+      setPlaybackState("error");
+      setAudioAnnouncement(
+        "Audio could not start in this browser. Exact values remain available in the table.",
+      );
+    }
+  }
 
   function selectPoint(nextPointIndex: number): void {
     if (nextPointIndex < 0 || nextPointIndex >= series.points.length) return;
@@ -83,6 +168,10 @@ function PointExplorer({ lesson }: { lesson: ChartLesson }) {
   function selectSeries(nextSeriesIndex: number): void {
     const nextSeries = lesson.series[nextSeriesIndex];
     if (!nextSeries) return;
+    playbackGenerationRef.current += 1;
+    audioPlayerRef.current?.stop();
+    setPlaybackState("idle");
+    setAudioAnnouncement("");
     setSeriesIndex(nextSeriesIndex);
     setPointIndex(0);
     setAnnouncement(currentPointText(nextSeries, 0, lesson.yAxis.unit));
@@ -124,10 +213,14 @@ function PointExplorer({ lesson }: { lesson: ChartLesson }) {
         aria-describedby={helpId}
         aria-keyshortcuts="ArrowLeft ArrowRight"
         className="point-readout"
+        data-playback-active={isPlaying ? "true" : "false"}
         onKeyDown={onExplorerKeyDown}
         tabIndex={0}
       >
-        <p>{currentText}</p>
+        <div>
+          {isPlaying ? <span className="audio-current-marker">Sounding now</span> : null}
+          <p>{currentText}</p>
+        </div>
         <PointStatus status={series.points[pointIndex]!.status} />
       </div>
 
@@ -153,6 +246,45 @@ function PointExplorer({ lesson }: { lesson: ChartLesson }) {
         When the current point is focused, use Left and Right Arrow. Navigation
         stops at the first and last point.
       </p>
+
+      <div className="sonification-controls">
+        <div className="sonification-copy">
+          <p className="chart-section-label">Optional sound</p>
+          <p>
+            Lower values use lower pitches; higher values use higher pitches.
+            Exact values stay available above.
+          </p>
+        </div>
+        <div className="sonification-actions">
+          <button
+            aria-label={isPlaying ? "Restart series" : "Play series"}
+            className="button button-primary"
+            onClick={() => void playSeries()}
+            type="button"
+          >
+            {isPlaying ? "Restart series" : "Play series"}
+          </button>
+          <button
+            className="button button-secondary"
+            disabled={!isPlaying}
+            onClick={stopPlayback}
+            type="button"
+          >
+            Stop
+          </button>
+        </div>
+        <p className="sonification-status" data-testid="sonification-status">
+          {playbackState === "playing"
+            ? `Playing ${series.label} — point ${pointIndex + 1} of ${series.points.length}.`
+            : playbackState === "complete"
+              ? `Playback complete for ${series.label}.`
+              : playbackState === "stopped"
+                ? "Playback stopped."
+                : playbackState === "error"
+                  ? "Audio unavailable. Exact values remain available."
+                  : `Ready to play ${series.label}.`}
+        </p>
+      </div>
       <p
         aria-atomic="true"
         aria-live="polite"
@@ -161,11 +293,29 @@ function PointExplorer({ lesson }: { lesson: ChartLesson }) {
       >
         {announcement}
       </p>
+      <p
+        aria-atomic="true"
+        aria-live="polite"
+        className="visually-hidden"
+        data-testid="audio-announcement"
+      >
+        {audioAnnouncement}
+      </p>
     </section>
   );
 }
 
+function playbackLessonKey(lesson: ChartLesson): string {
+  return lesson.series
+    .map(
+      (series) =>
+        `${series.id}:${series.points.map((point) => `${point.id}:${point.value}`).join(",")}`,
+    )
+    .join("|");
+}
+
 export function ChartLessonView({
+  audioPlayerFactory = createWebAudioPlayer,
   headingRef,
   lesson,
   sourceLabel,
@@ -276,7 +426,11 @@ export function ChartLessonView({
         </section>
       ) : null}
 
-      <PointExplorer lesson={lesson} />
+      <PointExplorer
+        audioPlayerFactory={audioPlayerFactory}
+        key={playbackLessonKey(lesson)}
+        lesson={lesson}
+      />
       <p className="analysis-review-note">
         Draft only. Teacher review comes next.
       </p>

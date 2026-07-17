@@ -328,6 +328,198 @@ test("opens and explores a multi-series chart sample by keyboard", async ({ page
   await expect(page.getByRole("button", { name: "Next point" })).toBeEnabled();
 });
 
+test("sonifies one chart series only after keyboard activation and cancels cleanly", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const audit = {
+      closes: 0,
+      contexts: 0,
+      immediateStops: 0,
+      resumes: 0,
+      scheduledStarts: 0,
+      scheduledStops: 0,
+    };
+    Object.assign(window, { __optiqAudioAudit: audit });
+
+    class FakeAudioParam {
+      linearRampToValueAtTime(): FakeAudioParam {
+        return this;
+      }
+
+      setValueAtTime(): FakeAudioParam {
+        return this;
+      }
+    }
+
+    class FakeOscillator {
+      readonly frequency = new FakeAudioParam();
+      onended: (() => void) | null = null;
+      type = "sine";
+
+      connect(): void {}
+      disconnect(): void {}
+      start(): void {
+        audit.scheduledStarts += 1;
+      }
+      stop(time?: number): void {
+        if (typeof time === "number") audit.scheduledStops += 1;
+        else audit.immediateStops += 1;
+      }
+    }
+
+    class FakeGain {
+      readonly gain = new FakeAudioParam();
+      connect(): void {}
+      disconnect(): void {}
+    }
+
+    class FakeAudioContext {
+      readonly currentTime = 0;
+      readonly destination = {};
+      state = "suspended";
+
+      constructor() {
+        audit.contexts += 1;
+      }
+
+      close(): Promise<void> {
+        audit.closes += 1;
+        this.state = "closed";
+        return Promise.resolve();
+      }
+
+      createGain(): FakeGain {
+        return new FakeGain();
+      }
+
+      createOscillator(): FakeOscillator {
+        return new FakeOscillator();
+      }
+
+      resume(): Promise<void> {
+        audit.resumes += 1;
+        this.state = "running";
+        return Promise.resolve();
+      }
+    }
+
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: FakeAudioContext,
+    });
+  });
+
+  await page.goto("/create");
+  await page.getByRole("button", { name: "Open" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("table", {
+      name: "Plant height by light condition — exact values",
+    }),
+  ).toBeVisible();
+
+  const audioAudit = () =>
+    page.evaluate(
+      () =>
+        (window as unknown as Window & {
+          __optiqAudioAudit: {
+            closes: number;
+            contexts: number;
+            immediateStops: number;
+            resumes: number;
+            scheduledStarts: number;
+            scheduledStops: number;
+          };
+        }).__optiqAudioAudit,
+    );
+  expect((await audioAudit()).contexts).toBe(0);
+
+  const status = page.getByTestId("sonification-status");
+  const play = page.getByRole("button", { name: "Play series" });
+  await play.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Restart series" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Stop" })).toBeEnabled();
+  await expect(status).toContainText("Playing Bean — point 1 of 4.");
+  expect(await audioAudit()).toMatchObject({
+    contexts: 1,
+    resumes: 1,
+    scheduledStarts: 4,
+    scheduledStops: 4,
+  });
+
+  await expect(status).toContainText("Playing Bean — point 2 of 4.", {
+    timeout: 1_500,
+  });
+  await expect(page.getByTestId("point-announcement")).toHaveText("");
+  await expect(page.getByTestId("audio-announcement")).toHaveText(
+    "Playback started for Bean.",
+  );
+
+  await page.getByRole("button", { name: "Restart series" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(status).toContainText("Playing Bean — point 1 of 4.");
+  await expect(page.getByTestId("audio-announcement")).toHaveText(
+    "Playback restarted for Bean.",
+  );
+  expect((await audioAudit()).contexts).toBe(1);
+  expect((await audioAudit()).immediateStops).toBeGreaterThanOrEqual(4);
+
+  const stop = page.getByRole("button", { name: "Stop" });
+  await stop.focus();
+  await page.keyboard.press("Enter");
+  await expect(stop).toBeDisabled();
+  await expect(status).toHaveText("Playback stopped.");
+  await expect(page.getByTestId("audio-announcement")).toHaveText(
+    "Playback stopped.",
+  );
+
+  await page.getByRole("button", { name: "Play series" }).focus();
+  await page.keyboard.press("Enter");
+  const series = page.getByRole("combobox", { name: "Series" });
+  await series.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(series).toHaveValue("1");
+  await expect(status).toHaveText("Ready to play Pea.");
+  await expect(page.getByTestId("audio-announcement")).toHaveText("");
+  await expect(page.getByRole("button", { name: "Stop" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Play series" }).focus();
+  await page.keyboard.press("Enter");
+  const processMode = page.getByRole("radio", { name: /^Process diagram/ });
+  await processMode.focus();
+  await page.keyboard.press("Space");
+  await expect(processMode).toBeChecked();
+  await expect(page.getByTestId("sonification-status")).toHaveCount(0);
+  expect((await audioAudit()).closes).toBe(1);
+
+  const chartMode = page.getByRole("radio", { name: /^Chart/ });
+  await chartMode.focus();
+  await page.keyboard.press("Space");
+  await page.getByRole("button", { name: "Open" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Play series" }).focus();
+  await page.keyboard.press("Enter");
+  await page
+    .getByLabel("Image file")
+    .setInputFiles(resolve("fixtures/images/chart-bar-01.png"));
+  await expect(page.getByTestId("sonification-status")).toHaveCount(0);
+  expect((await audioAudit()).closes).toBe(2);
+
+  await page.getByRole("button", { name: "Open" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Play series" }).focus();
+  await page.keyboard.press("Enter");
+  await page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Examples" })
+    .click();
+  await expect(page).toHaveURL(/\/examples$/);
+  await expect(page.getByTestId("sonification-status")).toHaveCount(0);
+  expect((await audioAudit()).closes).toBe(3);
+});
+
 test("reveals the skip link and transfers focus to the page", async ({ page }) => {
   await page.goto("/create");
 
@@ -414,4 +606,16 @@ test("removes horizontal route motion when reduced motion is requested", async (
     });
 
   expect(animationDurationMilliseconds).toBeLessThanOrEqual(0.01);
+
+  await page.goto("/create");
+  await page.getByRole("button", { name: "Open" }).click();
+  const cursorTransitionMilliseconds = await page
+    .locator(".point-readout")
+    .evaluate((element) => {
+      const duration = getComputedStyle(element).transitionDuration.split(",")[0]!;
+      return duration.endsWith("ms")
+        ? Number.parseFloat(duration)
+        : Number.parseFloat(duration) * 1000;
+    });
+  expect(cursorTransitionMilliseconds).toBeLessThanOrEqual(0.01);
 });
