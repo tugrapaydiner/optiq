@@ -9,6 +9,7 @@ import {
   type DragEvent,
 } from "react";
 
+import { ChartLessonView } from "@/components/chart-lesson";
 import type {
   AnalyzeEnvelope,
   AnalyzeMode,
@@ -16,6 +17,7 @@ import type {
 } from "@/lib/analyze/types";
 import type { ChartLesson } from "@/lib/contracts/chart";
 import type { ProcessLesson } from "@/lib/contracts/process";
+import { CHART_SAMPLES, getChartSample } from "@/lib/samples/chart-samples";
 import {
   DEFAULT_MAX_UPLOAD_BYTES,
   formatUploadLimit,
@@ -93,9 +95,11 @@ function formatFileSize(bytes: number): string {
 
 function ResultSummary({
   envelope,
+  headingRef,
   onRetry,
 }: {
   envelope: AnalyzeEnvelope;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
   onRetry: () => void;
 }) {
   if (!envelope.ok) {
@@ -129,33 +133,14 @@ function ResultSummary({
 
   if (envelope.mode === "chart") {
     const lesson = envelope.lesson as ChartLesson;
-    const pointCount = lesson.series.reduce(
-      (total, series) => total + series.points.length,
-      0,
-    );
     return (
-      <div className="analysis-message analysis-message-success">
-        <p className="analysis-message-label">
-          {envelope.provider === "fixture" ? "Built-in fixture draft" : "Live draft"}
-        </p>
-        <h3>{lesson.title}</h3>
-        <p>{lesson.summary}</p>
-        <dl className="analysis-facts">
-          <div>
-            <dt>Series</dt>
-            <dd>{lesson.series.length}</dd>
-          </div>
-          <div>
-            <dt>Values</dt>
-            <dd>{pointCount}</dd>
-          </div>
-          <div>
-            <dt>Review items</dt>
-            <dd>{lesson.reviewItems.length}</dd>
-          </div>
-        </dl>
-        <p className="analysis-review-note">Draft only. Teacher review comes next.</p>
-      </div>
+      <ChartLessonView
+        headingRef={headingRef}
+        lesson={lesson}
+        sourceLabel={
+          envelope.provider === "fixture" ? "Built-in sample draft" : "Live draft"
+        }
+      />
     );
   }
 
@@ -193,11 +178,13 @@ export function LessonCreator({
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [sampleId, setSampleId] = useState(CHART_SAMPLES[0]!.id);
   const [requestState, setRequestState] = useState<RequestState>({ status: "idle" });
   const inputRef = useRef<HTMLInputElement>(null);
   const chooseButtonRef = useRef<HTMLButtonElement>(null);
   const analyzeButtonRef = useRef<HTMLButtonElement>(null);
   const errorRef = useRef<HTMLHeadingElement>(null);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const previewUrlRef = useRef<string | null>(null);
   const activeRequest = useRef<{ controller: AbortController; sequence: number } | null>(
     null,
@@ -205,8 +192,11 @@ export function LessonCreator({
   const sequence = useRef(0);
 
   useEffect(() => {
-    if (requestState.status === "finished" && !requestState.envelope.ok) {
+    if (requestState.status !== "finished") return;
+    if (!requestState.envelope.ok) {
       errorRef.current?.focus();
+    } else if (requestState.envelope.mode === "chart") {
+      resultHeadingRef.current?.focus();
     }
   }, [requestState]);
 
@@ -270,6 +260,26 @@ export function LessonCreator({
     setRequestState({ status: "idle" });
     if (inputRef.current) inputRef.current.value = "";
     focusSoon("choose");
+  }
+
+  function openChartSample(): void {
+    cancelActiveRequest();
+    const sample = getChartSample(sampleId);
+    setMode("chart");
+    setFile(null);
+    replacePreview(null);
+    setFileError(null);
+    if (inputRef.current) inputRef.current.value = "";
+    setRequestState({
+      envelope: {
+        lesson: sample.lesson,
+        mode: "chart",
+        ok: true,
+        provider: "fixture",
+        requestId: `sample_${sample.id}`,
+      },
+      status: "finished",
+    });
   }
 
   async function analyze(): Promise<void> {
@@ -340,9 +350,39 @@ export function LessonCreator({
     <div aria-busy={requestState.status === "loading"} className="studio-workspace">
       <div className="studio-source-grid">
         <section aria-labelledby="visual-type-heading" className="source-kind">
-          <div className="studio-step-heading">
-            <h2 id="visual-type-heading">Visual type</h2>
-            <p>Choose what students need to explore.</p>
+          <div className="studio-step-heading source-kind-heading">
+            <div>
+              <h2 id="visual-type-heading">Visual type</h2>
+              <p>Choose what students need to explore.</p>
+            </div>
+            {mode === "chart" ? (
+              <div className="sample-picker">
+                <span className="sample-picker-note">Sample · no API</span>
+                <div className="sample-picker-controls">
+                  <label className="visually-hidden" htmlFor="chart-sample">
+                    Built-in chart
+                  </label>
+                  <select
+                    id="chart-sample"
+                    onChange={(event) => setSampleId(event.target.value)}
+                    value={sampleId}
+                  >
+                    {CHART_SAMPLES.map((sample) => (
+                      <option key={sample.id} value={sample.id}>
+                        {sample.label} — {sample.description}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="text-action sample-open"
+                    onClick={openChartSample}
+                    type="button"
+                  >
+                    Open
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <fieldset>
@@ -393,6 +433,7 @@ export function LessonCreator({
               </label>
             </div>
           </fieldset>
+
         </section>
 
         <section aria-labelledby="upload-heading" className="source-upload">
@@ -503,7 +544,12 @@ export function LessonCreator({
               Analysis error
             </h2>
           ) : null}
-          <ResultSummary envelope={requestState.envelope} onRetry={analyze} />
+          <ResultSummary
+            envelope={requestState.envelope}
+            headingRef={resultHeadingRef}
+            key={requestState.envelope.requestId}
+            onRetry={analyze}
+          />
         </section>
       ) : null}
 

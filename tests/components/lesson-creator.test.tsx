@@ -99,8 +99,33 @@ describe("LessonCreator", () => {
     expect(
       await screen.findByRole("heading", { name: "Monthly library visits" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Built-in fixture draft")).toBeInTheDocument();
+    expect(screen.getByText("Built-in sample draft")).toBeInTheDocument();
     expect(screen.getByText("Draft only. Teacher review comes next.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Monthly library visits" }),
+    ).toHaveFocus();
+  });
+
+  it("opens the default multi-series owned sample without a provider call", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    render(<LessonCreator />);
+
+    expect(screen.getByRole("combobox", { name: "Built-in chart" })).toHaveValue(
+      "chart-bar-02",
+    );
+    await user.click(screen.getByRole("button", { name: "Open" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("heading", { name: "Plant height by light condition" }),
+    ).toHaveFocus();
+    expect(
+      screen.getByRole("table", {
+        name: "Plant height by light condition — exact values",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Series" })).toHaveValue("0");
   });
 
   it("keeps the selected image after a retryable error and succeeds on retry", async () => {

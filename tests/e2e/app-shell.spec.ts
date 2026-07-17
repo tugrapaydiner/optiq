@@ -279,9 +279,11 @@ test("keeps the rebuilt studio native, editorial, and keyboard operable", async 
   await expect(analyze).toBeFocused();
 
   await page.keyboard.press("Enter");
-  await expect(page.getByText("Built-in fixture draft")).toBeVisible();
+  await expect(page.getByText("Built-in sample draft")).toBeVisible();
   await expect(page.getByText("Draft only. Teacher review comes next.")).toBeVisible();
-  await expect(page.getByText(chartFixture.title)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: chartFixture.title }),
+  ).toBeVisible();
 
   const remove = page.getByRole("button", { name: "Remove" });
   await remove.focus();
@@ -289,6 +291,41 @@ test("keeps the rebuilt studio native, editorial, and keyboard operable", async 
   await expect(page.getByRole("button", { name: "Choose a file" })).toBeFocused();
   await expect(analyze).toBeDisabled();
   await expect(page.getByRole("region", { name: "Analysis result" })).toHaveCount(0);
+});
+
+test("opens and explores a multi-series chart sample by keyboard", async ({ page }) => {
+  await page.goto("/create");
+
+  const sample = page.getByRole("combobox", { name: "Built-in chart" });
+  await expect(sample).toHaveValue("chart-bar-02");
+  const openSample = page.getByRole("button", { name: "Open" });
+  await openSample.focus();
+  await page.keyboard.press("Enter");
+
+  const lessonHeading = page.getByRole("heading", {
+    name: "Plant height by light condition",
+  });
+  await expect(lessonHeading).toBeFocused();
+  await expect(
+    page.getByRole("table", {
+      name: "Plant height by light condition — exact values",
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Bean (cm)" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Pea (cm)" })).toBeVisible();
+
+  const readout = page.locator(".point-readout");
+  await readout.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(readout).toContainText("Bean — Medium — 14 cm — point 2 of 4");
+
+  const series = page.getByRole("combobox", { name: "Series" });
+  await series.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(series).toHaveValue("1");
+  await expect(readout).toContainText("Pea — Low — 6 cm — point 1 of 4");
+  await expect(page.getByRole("button", { name: "Previous point" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Next point" })).toBeEnabled();
 });
 
 test("reveals the skip link and transfers focus to the page", async ({ page }) => {

@@ -20,3 +20,22 @@ for (const route of [
     expect(results.violations).toEqual([]);
   });
 }
+
+test("has no detectable accessibility violations in the chart success state", async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" || message.type() === "warning") {
+      consoleIssues.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  await page.goto("/create");
+  await page.getByRole("button", { name: "Open" }).click();
+  await expect(page.getByRole("table")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  expect(consoleIssues).toEqual([]);
+});
