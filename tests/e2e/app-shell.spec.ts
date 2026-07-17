@@ -68,7 +68,7 @@ test("gives every primary navigation item a distinct page", async ({ page }) => 
   await page.locator("a.header-action").click();
   await expect(page).toHaveURL(/\/create$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Build from the source." }),
+    page.getByRole("heading", { level: 1, name: "Create a lesson." }),
   ).toBeVisible();
 });
 
@@ -114,16 +114,40 @@ test("uses horizontal forward and backward route motion", async ({ page }) => {
   expect(backwardMotion.firstTransform).not.toContain("translateY");
 });
 
+test("keeps the product footer below the fold and uses the shared next-page row", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/product");
+
+  const productLayout = await page.evaluate(() => ({
+    footerTop: document.querySelector("footer")?.getBoundingClientRect().top ?? 0,
+    viewportHeight: window.innerHeight,
+  }));
+
+  expect(productLayout.footerTop).toBeGreaterThan(productLayout.viewportHeight);
+  await expect(page.locator("main img")).toHaveCount(1);
+  await expect(
+    page.getByRole("navigation", { name: "Continue" }).getByRole("link", {
+      name: "Next: How it works",
+    }),
+  ).toBeVisible();
+});
+
 test("keeps the rebuilt studio native, editorial, and keyboard operable", async ({
   page,
 }) => {
   await page.goto("/create");
 
+  await expect(page.locator(".studio-workspace")).toBeVisible();
   await expect(page.locator(".source-kind")).toBeVisible();
   await expect(page.locator(".upload-editorial")).toBeVisible();
-  await expect(page.locator(".studio-workspace, .workspace, .upload-panel")).toHaveCount(
-    0,
-  );
+
+  const workspaceLayout = await page.locator(".studio-workspace").evaluate((workspace) => ({
+    bottom: workspace.getBoundingClientRect().bottom,
+    viewportHeight: window.innerHeight,
+  }));
+  expect(workspaceLayout.bottom).toBeLessThanOrEqual(workspaceLayout.viewportHeight);
 
   const chartMode = page.getByRole("radio", { name: /^Chart/ });
   const processMode = page.getByRole("radio", { name: /^Process diagram/ });

@@ -96,7 +96,7 @@ describe("dedicated information pages", () => {
         name: "Access starts in the structure.",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Built around three commitments.")).toBeInTheDocument();
+    expect(screen.getByText("Three commitments.")).toBeInTheDocument();
   });
 });
 
@@ -105,7 +105,7 @@ describe("LessonStudioPage", () => {
     render(<LessonStudioPage />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Build from the source." }),
+      screen.getByRole("heading", { level: 1, name: "Create a lesson." }),
     ).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Visual type" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^Chart/ })).toBeChecked();
@@ -124,13 +124,14 @@ describe("LessonStudioPage", () => {
     expect(
       screen.getByRole("list", { name: "Lesson creation progress" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Review is required.")).toBeInTheDocument();
-    expect(screen.getByText(/Uncertain details must be resolved/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Teacher review is required before export."),
+    ).toBeInTheDocument();
   });
 });
 
 describe("ExamplesPageShell", () => {
-  it("uses large narrative examples without small image labels", () => {
+  it("shows the two supported lesson formats without reusing photography", () => {
     render(<ExamplesPageShell />);
 
     expect(
@@ -139,7 +140,12 @@ describe("ExamplesPageShell", () => {
         name: "See the visual. Explore the structure.",
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("img")).toHaveLength(3);
-    expect(document.querySelector(".story-label")).toBeNull();
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
+    expect(
+      screen.getByRole("list", { name: "Chart lesson outputs" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: "Process lesson outputs" }),
+    ).toBeInTheDocument();
   });
 });
