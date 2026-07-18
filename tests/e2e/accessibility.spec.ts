@@ -62,3 +62,27 @@ test("has no detectable accessibility violations in the process success state", 
   expect(results.violations).toEqual([]);
   expect(consoleIssues).toEqual([]);
 });
+
+test("has no detectable accessibility violations in the teacher review state", async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" || message.type() === "warning") {
+      consoleIssues.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  await page.goto("/create");
+  await page
+    .getByRole("combobox", { name: "Built-in chart" })
+    .selectOption("chart-review-01");
+  await page.getByRole("button", { name: "Open" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review the extracted lesson" }),
+  ).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  expect(consoleIssues).toEqual([]);
+});

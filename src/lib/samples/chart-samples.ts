@@ -5,6 +5,31 @@ import chartLineTwo from "../../../fixtures/gold/chart-line-02.json";
 
 import type { ChartLesson } from "../contracts/chart";
 
+const reviewBase = chartBarOne as ChartLesson;
+const chartReviewLesson: ChartLesson = {
+  ...reviewBase,
+  reviewItems: [
+    {
+      id: "review-march-value",
+      message:
+        "The March bar label is unclear. Confirm the exact numeric value.",
+      severity: "critical",
+      status: "unclear",
+      targetPath:
+        "/series/chart-bar-01-visits/points/chart-bar-01-visits-3/value",
+    },
+  ],
+  series: reviewBase.series.map((series) => ({
+    ...series,
+    points: series.points.map((point) =>
+      point.id === "chart-bar-01-visits-3"
+        ? { ...point, status: "unclear" }
+        : { ...point },
+    ),
+  })),
+  trends: reviewBase.trends.map((trend) => ({ ...trend })),
+};
+
 export type ChartSample = {
   description: string;
   id: string;
@@ -36,6 +61,12 @@ export const CHART_SAMPLES: readonly ChartSample[] = [
     id: "chart-line-02",
     label: "Quiz scores by study method",
     lesson: chartLineTwo as ChartLesson,
+  },
+  {
+    description: "One unclear value for teacher review",
+    id: "chart-review-01",
+    label: "Library visits review example",
+    lesson: chartReviewLesson,
   },
 ] as const;
 

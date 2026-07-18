@@ -11,6 +11,7 @@ import {
 
 import { ChartLessonView } from "@/components/chart-lesson";
 import { ProcessLessonView } from "@/components/process-lesson";
+import { TeacherReviewPanel } from "@/components/teacher-review";
 import type {
   AnalyzeEnvelope,
   AnalyzeMode,
@@ -23,6 +24,7 @@ import {
   PROCESS_SAMPLES,
   getProcessSample,
 } from "@/lib/samples/process-samples";
+import { createTeacherReviewState } from "@/lib/review/state";
 import {
   DEFAULT_MAX_UPLOAD_BYTES,
   formatUploadLimit,
@@ -98,6 +100,58 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function ChartReviewWorkspace({
+  headingRef,
+  lesson,
+  sourceLabel,
+}: {
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  lesson: ChartLesson;
+  sourceLabel: string;
+}) {
+  const [state, setState] = useState(() => createTeacherReviewState(lesson));
+  return (
+    <div className="review-workspace">
+      <TeacherReviewPanel
+        headingRef={headingRef}
+        mode="chart"
+        onChange={setState}
+        state={state}
+      />
+      <div className="review-preview">
+        <p className="analysis-message-label">Accessible draft preview</p>
+        <ChartLessonView lesson={state.draft} sourceLabel={sourceLabel} />
+      </div>
+    </div>
+  );
+}
+
+function ProcessReviewWorkspace({
+  headingRef,
+  lesson,
+  sourceLabel,
+}: {
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  lesson: ProcessLesson;
+  sourceLabel: string;
+}) {
+  const [state, setState] = useState(() => createTeacherReviewState(lesson));
+  return (
+    <div className="review-workspace">
+      <TeacherReviewPanel
+        headingRef={headingRef}
+        mode="process"
+        onChange={setState}
+        state={state}
+      />
+      <div className="review-preview">
+        <p className="analysis-message-label">Accessible draft preview</p>
+        <ProcessLessonView lesson={state.draft} sourceLabel={sourceLabel} />
+      </div>
+    </div>
+  );
+}
+
 function ResultSummary({
   envelope,
   headingRef,
@@ -139,7 +193,7 @@ function ResultSummary({
   if (envelope.mode === "chart") {
     const lesson = envelope.lesson as ChartLesson;
     return (
-      <ChartLessonView
+      <ChartReviewWorkspace
         headingRef={headingRef}
         lesson={lesson}
         sourceLabel={
@@ -150,7 +204,7 @@ function ResultSummary({
   }
 
   return (
-    <ProcessLessonView
+    <ProcessReviewWorkspace
       headingRef={headingRef}
       lesson={envelope.lesson as ProcessLesson}
       sourceLabel={

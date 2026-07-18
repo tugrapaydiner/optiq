@@ -102,8 +102,11 @@ describe("LessonCreator", () => {
     expect(screen.getByText("Built-in sample draft")).toBeInTheDocument();
     expect(screen.getByText("Draft only. Teacher review comes next.")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Monthly library visits" }),
+      screen.getByRole("heading", { name: "Review the extracted lesson" }),
     ).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { name: "Monthly library visits" }),
+    ).toBeVisible();
   });
 
   it("opens the default multi-series owned sample without a provider call", async () => {
@@ -118,8 +121,11 @@ describe("LessonCreator", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("heading", { name: "Plant height by light condition" }),
+      screen.getByRole("heading", { name: "Review the extracted lesson" }),
     ).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { name: "Plant height by light condition" }),
+    ).toBeVisible();
     expect(
       screen.getByRole("table", {
         name: "Plant height by light condition — exact values",
@@ -141,8 +147,11 @@ describe("LessonCreator", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("heading", { name: "Seed germination: parallel growth" }),
+      screen.getByRole("heading", { name: "Review the extracted lesson" }),
     ).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { name: "Seed germination: parallel growth" }),
+    ).toBeVisible();
     expect(
       screen.getByRole("list", { name: "Process reading order" }),
     ).toBeVisible();

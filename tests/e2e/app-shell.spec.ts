@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 
 import chartFixture from "../../fixtures/gold/chart-bar-01.json";
+import { SONIFICATION_TIMING } from "../../src/lib/sonification";
 
 const routes = [
   "/",
@@ -302,10 +303,12 @@ test("opens and explores a multi-series chart sample by keyboard", async ({ page
   await openSample.focus();
   await page.keyboard.press("Enter");
 
-  const lessonHeading = page.getByRole("heading", {
-    name: "Plant height by light condition",
-  });
-  await expect(lessonHeading).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Review the extracted lesson" }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Plant height by light condition" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("table", {
       name: "Plant height by light condition — exact values",
@@ -344,10 +347,12 @@ test("reads branch and cycle process samples with keyboard navigation", async ({
   await open.focus();
   await page.keyboard.press("Enter");
 
-  const branchHeading = page.getByRole("heading", {
-    name: "Seed germination: parallel growth",
-  });
-  await expect(branchHeading).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Review the extracted lesson" }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Seed germination: parallel growth" }),
+  ).toBeVisible();
   await expect(page.getByRole("list", { name: "Process reading order" })).toBeVisible();
   await expect(page.locator(".process-order > ol > li")).toHaveCount(5);
   await expect(
@@ -386,7 +391,10 @@ test("reads branch and cycle process samples with keyboard navigation", async ({
   await sample.selectOption("process-02");
   await open.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "Water cycle" })).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Review the extracted lesson" }),
+  ).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Water cycle" })).toBeVisible();
   await expect(page.locator(".process-order > ol > li")).toHaveCount(4);
   await expect(page.getByText(/last listed node is not an ending/i)).toBeVisible();
   await expect(
@@ -394,6 +402,86 @@ test("reads branch and cycle process samples with keyboard navigation", async ({
   ).toHaveAttribute("href", "#process-node-evaporation");
   await expect(page.getByRole("tree")).toHaveCount(0);
   await expect(page.locator('[role="application"]')).toHaveCount(0);
+});
+
+test("completes teacher verification and eligibility entirely by keyboard", async ({
+  page,
+}) => {
+  await page.goto("/create");
+
+  const sample = page.getByRole("combobox", { name: "Built-in chart" });
+  await sample.focus();
+  await page.keyboard.press("End");
+  await expect(sample).toHaveValue("chart-review-01");
+  const open = page.getByRole("button", { name: "Open" });
+  await open.focus();
+  await page.keyboard.press("Enter");
+
+  await expect(
+    page.getByRole("heading", { name: "Review the extracted lesson" }),
+  ).toBeFocused();
+  const exportButton = page.getByRole("button", { name: "Export lesson" });
+  await expect(exportButton).toBeDisabled();
+  await expect(
+    page.getByText("Every critical review item must be resolved."),
+  ).toBeVisible();
+
+  const blocker = page.getByRole("link", { name: "Go to the first blocker" });
+  await blocker.focus();
+  await page.keyboard.press("Enter");
+  const itemHeading = page.getByRole("heading", {
+    level: 4,
+    name: "Visits — Mar — numeric value",
+  });
+  await expect(itemHeading).toBeFocused();
+
+  const value = page.getByRole("textbox", {
+    name: "Visits — Mar — numeric value",
+  });
+  await page.keyboard.press("Tab");
+  await expect(value).toBeFocused();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.press("Backspace");
+  await expect(value).toHaveAccessibleDescription("Enter a finite number.");
+
+  const valueItem = itemHeading.locator("xpath=ancestor::article");
+  const valueResolve = valueItem.getByRole("button", { name: "Mark resolved" });
+  await valueResolve.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("review-announcement")).toHaveText(
+    "Enter a finite number.",
+  );
+
+  await value.focus();
+  await page.keyboard.type("145");
+  await expect(page.locator(".review-summary dd").first()).toHaveText("2");
+  await valueResolve.focus();
+  await page.keyboard.press("Enter");
+
+  const trendHeading = page.getByRole("heading", { level: 4, name: "Trend 1" });
+  const trendItem = trendHeading.locator("xpath=ancestor::article");
+  const trendResolve = trendItem.getByRole("button", { name: "Mark resolved" });
+  await trendResolve.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".review-summary dd").first()).toHaveText("0");
+  await expect(page.getByText("Teacher acknowledgement is required.")).toBeVisible();
+
+  const acknowledgement = page.getByRole("checkbox", {
+    name: /I reviewed the extracted values, labels, order, and relationships/,
+  });
+  await acknowledgement.focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("heading", { name: "Review complete" })).toBeVisible();
+  await expect(exportButton).toBeDisabled();
+
+  await value.focus();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("146");
+  await expect(acknowledgement).not.toBeChecked();
+  await expect(page.locator(".review-summary dd").first()).toHaveText("2");
+  await expect(valueItem.getByRole("button", { name: "Mark resolved" })).toBeVisible();
+  await expect(trendItem.getByRole("button", { name: "Mark resolved" })).toBeVisible();
+  await expect(page.getByTestId("review-announcement")).toHaveCount(1);
 });
 
 test("sonifies one chart series only after keyboard activation and cancels cleanly", async ({
@@ -486,6 +574,7 @@ test("sonifies one chart series only after keyboard activation and cancels clean
       name: "Plant height by light condition — exact values",
     }),
   ).toBeVisible();
+  await page.clock.install();
 
   const audioAudit = () =>
     page.evaluate(
@@ -517,9 +606,10 @@ test("sonifies one chart series only after keyboard activation and cancels clean
     scheduledStops: 4,
   });
 
-  await expect(status).toContainText("Playing Bean — point 2 of 4.", {
-    timeout: 1_500,
-  });
+  await page.clock.fastForward(
+    SONIFICATION_TIMING.toneDurationMs + SONIFICATION_TIMING.gapMs,
+  );
+  await expect(status).toContainText("Playing Bean — point 2 of 4.");
   await expect(page.getByTestId("point-announcement")).toHaveText("");
   await expect(page.getByTestId("audio-announcement")).toHaveText(
     "Playback started for Bean.",
@@ -617,6 +707,52 @@ test("does not create horizontal overflow across routes and widths", async ({
 
       expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
     }
+  }
+});
+
+test("reflows the teacher review at mobile and 200 percent equivalent widths", async ({
+  page,
+}) => {
+  for (const width of [640, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/create");
+    await page
+      .getByRole("combobox", { name: "Built-in chart" })
+      .selectOption("chart-review-01");
+    await page.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Review the extracted lesson" }),
+    ).toBeVisible();
+
+    const dimensions = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    const undersizedReviewTargets = await page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".teacher-review a, .teacher-review button, .teacher-review input:not([type='checkbox']), .teacher-review select, .teacher-review summary, .review-acknowledgement label",
+        ),
+      )
+        .map((element) => {
+          const rectangle = element.getBoundingClientRect();
+          return {
+            height: rectangle.height,
+            label: element.textContent?.trim().replace(/\s+/g, " ") ?? "",
+            width: rectangle.width,
+          };
+        })
+        .filter(
+          (target) =>
+            target.height > 0 &&
+            target.width > 0 &&
+            (target.height < 44 || target.width < 44),
+        ),
+    );
+
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    expect(undersizedReviewTargets).toEqual([]);
+    await expect(page.getByRole("button", { name: "Export lesson" })).toBeVisible();
   }
 });
 
