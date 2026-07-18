@@ -128,6 +128,27 @@ describe("LessonCreator", () => {
     expect(screen.getByRole("combobox", { name: "Series" })).toHaveValue("0");
   });
 
+  it("opens the owned branching process sample without a provider call", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    render(<LessonCreator />);
+
+    await user.click(screen.getByRole("radio", { name: /^Process diagram/ }));
+    expect(screen.getByRole("combobox", { name: "Built-in process" })).toHaveValue(
+      "process-01",
+    );
+    await user.click(screen.getByRole("button", { name: "Open" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("heading", { name: "Seed germination: parallel growth" }),
+    ).toHaveFocus();
+    expect(
+      screen.getByRole("list", { name: "Process reading order" }),
+    ).toBeVisible();
+    expect(screen.getByText("Branching process")).toBeVisible();
+  });
+
   it("keeps the selected image after a retryable error and succeeds on retry", async () => {
     const user = userEvent.setup();
     const fetchMock = vi

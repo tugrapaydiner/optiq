@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { ChartLessonView } from "@/components/chart-lesson";
+import { ProcessLessonView } from "@/components/process-lesson";
 import type {
   AnalyzeEnvelope,
   AnalyzeMode,
@@ -18,6 +19,10 @@ import type {
 import type { ChartLesson } from "@/lib/contracts/chart";
 import type { ProcessLesson } from "@/lib/contracts/process";
 import { CHART_SAMPLES, getChartSample } from "@/lib/samples/chart-samples";
+import {
+  PROCESS_SAMPLES,
+  getProcessSample,
+} from "@/lib/samples/process-samples";
 import {
   DEFAULT_MAX_UPLOAD_BYTES,
   formatUploadLimit,
@@ -144,30 +149,14 @@ function ResultSummary({
     );
   }
 
-  const lesson = envelope.lesson as ProcessLesson;
   return (
-    <div className="analysis-message analysis-message-success">
-      <p className="analysis-message-label">
-        {envelope.provider === "fixture" ? "Built-in fixture draft" : "Live draft"}
-      </p>
-      <h3>{lesson.title}</h3>
-      <p>{lesson.summary}</p>
-      <dl className="analysis-facts">
-        <div>
-          <dt>Steps</dt>
-          <dd>{lesson.nodes.length}</dd>
-        </div>
-        <div>
-          <dt>Relationships</dt>
-          <dd>{lesson.edges.length}</dd>
-        </div>
-        <div>
-          <dt>Review items</dt>
-          <dd>{lesson.reviewItems.length}</dd>
-        </div>
-      </dl>
-      <p className="analysis-review-note">Draft only. Teacher review comes next.</p>
-    </div>
+    <ProcessLessonView
+      headingRef={headingRef}
+      lesson={envelope.lesson as ProcessLesson}
+      sourceLabel={
+        envelope.provider === "fixture" ? "Built-in sample draft" : "Live draft"
+      }
+    />
   );
 }
 
@@ -179,6 +168,7 @@ export function LessonCreator({
   const [fileError, setFileError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sampleId, setSampleId] = useState(CHART_SAMPLES[0]!.id);
+  const [processSampleId, setProcessSampleId] = useState(PROCESS_SAMPLES[0]!.id);
   const [requestState, setRequestState] = useState<RequestState>({ status: "idle" });
   const inputRef = useRef<HTMLInputElement>(null);
   const chooseButtonRef = useRef<HTMLButtonElement>(null);
@@ -195,7 +185,7 @@ export function LessonCreator({
     if (requestState.status !== "finished") return;
     if (!requestState.envelope.ok) {
       errorRef.current?.focus();
-    } else if (requestState.envelope.mode === "chart") {
+    } else {
       resultHeadingRef.current?.focus();
     }
   }, [requestState]);
@@ -282,6 +272,26 @@ export function LessonCreator({
     });
   }
 
+  function openProcessSample(): void {
+    cancelActiveRequest();
+    const sample = getProcessSample(processSampleId);
+    setMode("process");
+    setFile(null);
+    replacePreview(null);
+    setFileError(null);
+    if (inputRef.current) inputRef.current.value = "";
+    setRequestState({
+      envelope: {
+        lesson: sample.lesson,
+        mode: "process",
+        ok: true,
+        provider: "fixture",
+        requestId: `sample_${sample.id}`,
+      },
+      status: "finished",
+    });
+  }
+
   async function analyze(): Promise<void> {
     if (!file || requestState.status === "loading") return;
 
@@ -355,34 +365,60 @@ export function LessonCreator({
               <h2 id="visual-type-heading">Visual type</h2>
               <p>Choose what students need to explore.</p>
             </div>
-            {mode === "chart" ? (
-              <div className="sample-picker">
-                <span className="sample-picker-note">Sample · no API</span>
-                <div className="sample-picker-controls">
-                  <label className="visually-hidden" htmlFor="chart-sample">
-                    Built-in chart
-                  </label>
-                  <select
-                    id="chart-sample"
-                    onChange={(event) => setSampleId(event.target.value)}
-                    value={sampleId}
-                  >
-                    {CHART_SAMPLES.map((sample) => (
-                      <option key={sample.id} value={sample.id}>
-                        {sample.label} — {sample.description}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="text-action sample-open"
-                    onClick={openChartSample}
-                    type="button"
-                  >
-                    Open
-                  </button>
-                </div>
+            <div className="sample-picker">
+              <span className="sample-picker-note">Sample · no API</span>
+              <div className="sample-picker-controls">
+                {mode === "chart" ? (
+                  <>
+                    <label className="visually-hidden" htmlFor="chart-sample">
+                      Built-in chart
+                    </label>
+                    <select
+                      id="chart-sample"
+                      onChange={(event) => setSampleId(event.target.value)}
+                      value={sampleId}
+                    >
+                      {CHART_SAMPLES.map((sample) => (
+                        <option key={sample.id} value={sample.id}>
+                          {sample.label} — {sample.description}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="text-action sample-open"
+                      onClick={openChartSample}
+                      type="button"
+                    >
+                      Open
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <label className="visually-hidden" htmlFor="process-sample">
+                      Built-in process
+                    </label>
+                    <select
+                      id="process-sample"
+                      onChange={(event) => setProcessSampleId(event.target.value)}
+                      value={processSampleId}
+                    >
+                      {PROCESS_SAMPLES.map((sample) => (
+                        <option key={sample.id} value={sample.id}>
+                          {sample.label} — {sample.description}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="text-action sample-open"
+                      onClick={openProcessSample}
+                      type="button"
+                    >
+                      Open
+                    </button>
+                  </>
+                )}
               </div>
-            ) : null}
+            </div>
           </div>
 
           <fieldset>

@@ -989,6 +989,7 @@ html[data-route-direction="backward"] .route-frame {
   width: 1.15rem;
   height: 1.15rem;
   margin-top: 0.18rem;
+  pointer-events: none;
   background: var(--surface-strong);
   border: 1.5px solid #8f8c83;
   border-radius: 50%;
@@ -1343,7 +1344,8 @@ html[data-route-direction="backward"] .route-frame {
   padding-inline: 0.55rem;
 }
 
-.chart-lesson {
+.chart-lesson,
+.process-lesson {
   display: grid;
   gap: 1.35rem;
   margin: 0;
@@ -1352,7 +1354,8 @@ html[data-route-direction="backward"] .route-frame {
   border-radius: 18px;
 }
 
-.chart-lesson-intro h2 {
+.chart-lesson-intro h2,
+.process-lesson-intro h2 {
   max-width: 50rem;
   margin: 0;
   font-size: clamp(1.8rem, 3vw, 2.5rem);
@@ -1361,7 +1364,8 @@ html[data-route-direction="backward"] .route-frame {
   line-height: 1.06;
 }
 
-.chart-summary {
+.chart-summary,
+.process-summary {
   max-width: 48rem;
   margin: 0.7rem 0 0;
   color: var(--ink-soft);
@@ -1369,25 +1373,29 @@ html[data-route-direction="backward"] .route-frame {
   line-height: 1.55;
 }
 
-.chart-context {
+.chart-context,
+.process-context {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.8rem;
   margin: 0;
 }
 
-.chart-context > div {
+.chart-context > div,
+.process-context > div {
   min-width: 0;
   padding-top: 0.75rem;
   border-top: 1px solid var(--line);
 }
 
-.chart-context dt {
+.chart-context dt,
+.process-context dt {
   color: var(--muted);
   font-size: 0.75rem;
 }
 
-.chart-context dd {
+.chart-context dd,
+.process-context dd {
   margin: 0.3rem 0 0;
   font-size: 0.9rem;
   font-weight: 660;
@@ -1643,6 +1651,187 @@ html[data-route-direction="backward"] .route-frame {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 650;
+}
+
+.process-structure-note {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  color: var(--ink-soft);
+  background: var(--background);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.process-order,
+.process-explorer {
+  min-width: 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.process-order > ol {
+  display: grid;
+  gap: 0;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.process-order > ol > li {
+  position: relative;
+  min-width: 0;
+  padding: 0 0 1.45rem 2.4rem;
+}
+
+.process-order > ol > li::before {
+  position: absolute;
+  top: 0.2rem;
+  left: 0;
+  width: 1.55rem;
+  height: 1.55rem;
+  color: var(--surface-strong);
+  background: var(--accent);
+  border-radius: 50%;
+  content: counter(list-item);
+  font-size: 0.72rem;
+  font-weight: 760;
+  line-height: 1.55rem;
+  text-align: center;
+}
+
+.process-order > ol > li:not(:last-child)::after {
+  position: absolute;
+  top: 1.9rem;
+  bottom: 0.3rem;
+  left: 0.75rem;
+  width: 1px;
+  background: var(--line);
+  content: "";
+}
+
+.process-node {
+  min-width: 0;
+  padding-bottom: 0.2rem;
+}
+
+.process-step-count {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.process-node h4 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 690;
+  letter-spacing: -0.02em;
+}
+
+.process-node-description {
+  max-width: 48rem;
+  margin: 0.4rem 0 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.process-provenance {
+  display: block;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 680;
+}
+
+.process-node-connections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+  margin-top: 0.85rem;
+}
+
+.process-connection-heading {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 740;
+}
+
+.process-connection-empty {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.process-connections ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.process-connections li {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.process-connections a {
+  color: var(--accent);
+  font-weight: 690;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.process-connection-status {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.process-explorer-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: end;
+}
+
+.process-explorer-heading h3 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.process-position {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 680;
+}
+
+.process-current-node {
+  margin-top: 0.9rem;
+  padding: 1rem 1.1rem;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.process-current-node p {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.process-current-node .process-current-label {
+  margin-top: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 720;
 }
 
 /* Footer */
@@ -1968,13 +2157,20 @@ html[data-route-direction="backward"] .route-frame {
     width: 100%;
   }
 
-  .chart-context {
+  .chart-context,
+  .process-context {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .point-explorer-heading {
+  .point-explorer-heading,
+  .process-explorer-heading {
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
+  }
+
+  .process-node-connections {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
   }
 
   .single-series-label {
@@ -1997,11 +2193,13 @@ html[data-route-direction="backward"] .route-frame {
     gap: 1.4rem;
   }
 
-  .chart-lesson {
+  .chart-lesson,
+  .process-lesson {
     padding-inline: 1rem;
   }
 
-  .chart-context {
+  .chart-context,
+  .process-context {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2061,6 +2259,7 @@ html[data-route-direction="backward"] .route-frame {
   .upload-editorial,
   .chart-table-scroll,
   .point-readout,
+  .process-current-node,
   .sonification-controls,
   .mobile-navigation nav {
     border: 1px solid CanvasText;

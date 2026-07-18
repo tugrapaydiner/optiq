@@ -328,6 +328,74 @@ test("opens and explores a multi-series chart sample by keyboard", async ({ page
   await expect(page.getByRole("button", { name: "Next point" })).toBeEnabled();
 });
 
+test("reads branch and cycle process samples with keyboard navigation", async ({
+  page,
+}) => {
+  await page.goto("/create");
+
+  const processMode = page.getByRole("radio", { name: /^Process diagram/ });
+  await processMode.focus();
+  await page.keyboard.press("Space");
+  await expect(processMode).toBeChecked();
+
+  const sample = page.getByRole("combobox", { name: "Built-in process" });
+  await expect(sample).toHaveValue("process-01");
+  const open = page.getByRole("button", { name: "Open" });
+  await open.focus();
+  await page.keyboard.press("Enter");
+
+  const branchHeading = page.getByRole("heading", {
+    name: "Seed germination: parallel growth",
+  });
+  await expect(branchHeading).toBeFocused();
+  await expect(page.getByRole("list", { name: "Process reading order" })).toBeVisible();
+  await expect(page.locator(".process-order > ol > li")).toHaveCount(5);
+  await expect(
+    page.getByText(/does not imply that there is only one next step/i),
+  ).toBeVisible();
+
+  const waterNode = page.locator(".process-node").filter({
+    has: page.getByRole("heading", { level: 4, name: "Absorbs water" }),
+  });
+  await expect(
+    waterNode.getByRole("link", { name: "Branch option: Root emerges" }),
+  ).toBeVisible();
+  await expect(
+    waterNode.getByRole("link", { name: "Branch option: Shoot emerges" }),
+  ).toBeVisible();
+
+  const rootJump = waterNode.getByRole("link", {
+    name: "Branch option: Root emerges",
+  });
+  await rootJump.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("heading", { level: 4, name: "Root emerges" }),
+  ).toBeFocused();
+
+  const explorer = page.locator(".process-explorer");
+  const next = explorer.getByRole("button", { name: "Next node" });
+  await next.focus();
+  await page.keyboard.press("Enter");
+  await expect(explorer.locator(".process-position")).toHaveText("Node 2 of 5");
+  await expect(explorer.locator(".process-current-label")).toHaveText(
+    "Absorbs water",
+  );
+  await expect(explorer.getByRole("button", { name: "Previous node" })).toBeEnabled();
+
+  await sample.selectOption("process-02");
+  await open.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Water cycle" })).toBeFocused();
+  await expect(page.locator(".process-order > ol > li")).toHaveCount(4);
+  await expect(page.getByText(/last listed node is not an ending/i)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Loops back to: Evaporation" }),
+  ).toHaveAttribute("href", "#process-node-evaporation");
+  await expect(page.getByRole("tree")).toHaveCount(0);
+  await expect(page.locator('[role="application"]')).toHaveCount(0);
+});
+
 test("sonifies one chart series only after keyboard activation and cancels cleanly", async ({
   page,
 }) => {
