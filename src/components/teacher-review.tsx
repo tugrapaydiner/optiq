@@ -5,6 +5,8 @@ import { useState, type Ref } from "react";
 import type { ChartLesson } from "@/lib/contracts/chart";
 import type { ReviewItem } from "@/lib/contracts/common";
 import type { ProcessLesson } from "@/lib/contracts/process";
+import { downloadStandaloneExport } from "@/lib/export/download";
+import { createStandaloneExport } from "@/lib/export/standalone";
 import {
   REVIEW_ACKNOWLEDGEMENT,
   exportEligibility,
@@ -462,6 +464,7 @@ function ReviewPanelLayout<TLesson extends ReviewLesson>({
   mode,
   onAnnounce,
   onChange,
+  onExport,
   state,
 }: {
   additionalEditor?: React.ReactNode;
@@ -469,6 +472,7 @@ function ReviewPanelLayout<TLesson extends ReviewLesson>({
   mode: ReviewMode;
   onAnnounce: (message: string) => void;
   onChange: (state: TeacherReviewState<TLesson>) => void;
+  onExport: () => void;
   state: TeacherReviewState<TLesson>;
 }) {
   const descriptors = new Map(
@@ -612,13 +616,18 @@ function ReviewPanelLayout<TLesson extends ReviewLesson>({
       </div>
 
       <div className="review-export-placeholder">
-        <button className="button button-primary" disabled type="button">
+        <button
+          className="button button-primary"
+          disabled={!eligibility.allowed}
+          onClick={onExport}
+          type="button"
+        >
           Export lesson
         </button>
         <p>
           {eligibility.allowed
-            ? "Eligibility is ready. Standalone file generation is added in the next task."
-            : "Resolve every reason above before the standalone export step can begin."}
+            ? "Download one self-contained HTML lesson. The source image is excluded."
+            : "Resolve every reason above before a standalone lesson can be downloaded."}
         </p>
       </div>
     </section>
@@ -635,6 +644,11 @@ export function TeacherReviewPanel(props: TeacherReviewPanelProps) {
           mode="chart"
           onAnnounce={setAnnouncement}
           onChange={props.onChange}
+          onExport={() => {
+            const artifact = createStandaloneExport(props.state, "chart");
+            downloadStandaloneExport(artifact);
+            setAnnouncement(`Downloaded ${artifact.filename}.`);
+          }}
           state={props.state}
         />
         <p
@@ -663,6 +677,11 @@ export function TeacherReviewPanel(props: TeacherReviewPanelProps) {
         mode="process"
         onAnnounce={setAnnouncement}
         onChange={props.onChange}
+        onExport={() => {
+          const artifact = createStandaloneExport(props.state, "process");
+          downloadStandaloneExport(artifact);
+          setAnnouncement(`Downloaded ${artifact.filename}.`);
+        }}
         state={props.state}
       />
       <p

@@ -108,15 +108,16 @@ describe("TeacherReviewPanel", () => {
     await user.click(screen.getByLabelText(REVIEW_ACKNOWLEDGEMENT));
     expect(screen.getByRole("heading", { name: "Review complete" })).toBeVisible();
     expect(
-      screen.getByText(/eligibility is ready/i),
+      screen.getByText(/download one self-contained HTML lesson/i),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "Export lesson" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Export lesson" })).toBeEnabled();
 
     await user.clear(value);
     await user.type(value, "130");
     expect(screen.getByLabelText(REVIEW_ACKNOWLEDGEMENT)).not.toBeChecked();
     expect(summaryValue("Unresolved critical")).toHaveTextContent("2");
     expect(within(valueItem).getByRole("button", { name: "Mark resolved" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Export lesson" })).toBeDisabled();
   });
 
   it("uses controlled process endpoints and non-drag reading-order buttons", async () => {

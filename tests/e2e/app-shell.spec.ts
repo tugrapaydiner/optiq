@@ -472,7 +472,7 @@ test("completes teacher verification and eligibility entirely by keyboard", asyn
   await acknowledgement.focus();
   await page.keyboard.press("Space");
   await expect(page.getByRole("heading", { name: "Review complete" })).toBeVisible();
-  await expect(exportButton).toBeDisabled();
+  await expect(exportButton).toBeEnabled();
 
   await value.focus();
   await page.keyboard.press("Control+A");
@@ -481,6 +481,7 @@ test("completes teacher verification and eligibility entirely by keyboard", asyn
   await expect(page.locator(".review-summary dd").first()).toHaveText("2");
   await expect(valueItem.getByRole("button", { name: "Mark resolved" })).toBeVisible();
   await expect(trendItem.getByRole("button", { name: "Mark resolved" })).toBeVisible();
+  await expect(exportButton).toBeDisabled();
   await expect(page.getByTestId("review-announcement")).toHaveCount(1);
 });
 
