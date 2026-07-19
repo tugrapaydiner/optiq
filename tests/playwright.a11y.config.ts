@@ -12,6 +12,7 @@ export default defineConfig({
   preserveOutput: "always",
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
+  workers: 4,
   use: {
     baseURL,
     trace: "retain-on-failure",

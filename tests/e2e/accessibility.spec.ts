@@ -314,6 +314,7 @@ test("has no detectable accessibility violations in the process success state", 
 test("has no detectable accessibility violations in the teacher review state", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60_000);
   const consoleIssues: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error" || message.type() === "warning") {

@@ -42,6 +42,7 @@ yarn-error.log*
 /.pnpm-store/
 /uploads/
 /exports/
+/.local-eval/
 
 # vercel
 .vercel

@@ -13,6 +13,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:a11y": "pnpm build && playwright test tests/e2e/accessibility.spec.ts --config=tests/playwright.a11y.config.ts",
+    "test:eval": "vitest run tests/eval",
+    "test:eval:live": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run tests/eval/live-evaluation.test.ts",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "engines": {
