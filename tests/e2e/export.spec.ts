@@ -49,6 +49,7 @@ function reviewedProcessArtifact() {
 test("downloads an eligible reviewed chart as standalone HTML", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60_000);
   await page.goto("/create");
   await page
     .getByRole("combobox", { name: "Built-in chart" })

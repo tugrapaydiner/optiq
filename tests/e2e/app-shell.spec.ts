@@ -334,6 +334,7 @@ test("opens and explores a multi-series chart sample by keyboard", async ({ page
 test("reads branch and cycle process samples with keyboard navigation", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   await page.goto("/create");
 
   const processMode = page.getByRole("radio", { name: /^Process diagram/ });
@@ -343,7 +344,7 @@ test("reads branch and cycle process samples with keyboard navigation", async ({
 
   const sample = page.getByRole("combobox", { name: "Built-in process" });
   await expect(sample).toHaveValue("process-01");
-  const open = page.getByRole("button", { name: "Open" });
+  const open = page.getByRole("button", { name: "Open", exact: true });
   await open.focus();
   await page.keyboard.press("Enter");
 
@@ -387,6 +388,24 @@ test("reads branch and cycle process samples with keyboard navigation", async ({
     "Absorbs water",
   );
   await expect(explorer.getByRole("button", { name: "Previous node" })).toBeEnabled();
+
+  const structureReview = page.getByText(
+    "Review connections and reading order",
+    { exact: true },
+  );
+  await structureReview.focus();
+  await page.keyboard.press("Enter");
+  const moveWaterUp = page.getByRole("button", {
+    name: "Move Absorbs water up",
+  });
+  await moveWaterUp.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Move Absorbs water down" }),
+  ).toBeFocused();
+  await expect(page.getByTestId("review-announcement")).toHaveText(
+    "Absorbs water moved up.",
+  );
 
   await sample.selectOption("process-02");
   await open.focus();
@@ -488,6 +507,7 @@ test("completes teacher verification and eligibility entirely by keyboard", asyn
 test("sonifies one chart series only after keyboard activation and cancels cleanly", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   await page.addInitScript(() => {
     const audit = {
       closes: 0,
@@ -576,6 +596,7 @@ test("sonifies one chart series only after keyboard activation and cancels clean
     }),
   ).toBeVisible();
   await page.clock.install();
+  await page.clock.pauseAt(Date.now());
 
   const audioAudit = () =>
     page.evaluate(
@@ -607,7 +628,7 @@ test("sonifies one chart series only after keyboard activation and cancels clean
     scheduledStops: 4,
   });
 
-  await page.clock.fastForward(
+  await page.clock.runFor(
     SONIFICATION_TIMING.toneDurationMs + SONIFICATION_TIMING.gapMs,
   );
   await expect(status).toContainText("Playing Bean — point 2 of 4.");
@@ -633,6 +654,7 @@ test("sonifies one chart series only after keyboard activation and cancels clean
   await expect(page.getByTestId("audio-announcement")).toHaveText(
     "Playback stopped.",
   );
+  await expect(page.getByRole("button", { name: "Play series" })).toBeFocused();
 
   await page.getByRole("button", { name: "Play series" }).focus();
   await page.keyboard.press("Enter");

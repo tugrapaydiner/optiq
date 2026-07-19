@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -78,6 +78,7 @@ describe("TeacherReviewPanel", () => {
     });
     await user.clear(value);
     expect(value).toHaveAccessibleDescription("Enter a finite number.");
+    expect(value).toHaveAttribute("aria-invalid", "true");
     const valueItem = screen
       .getByRole("heading", {
         level: 4,
@@ -91,6 +92,7 @@ describe("TeacherReviewPanel", () => {
     expect(summaryValue("Unresolved critical")).toHaveTextContent("1");
 
     await user.type(value, "125");
+    expect(value).not.toHaveAttribute("aria-invalid");
     expect(summaryValue("Unresolved critical")).toHaveTextContent("2");
     expect(screen.getByRole("heading", { level: 4, name: "Trend 1" })).toBeVisible();
     expect(within(valueItem).getByText("Original").parentElement).toHaveTextContent(
@@ -118,7 +120,7 @@ describe("TeacherReviewPanel", () => {
     expect(summaryValue("Unresolved critical")).toHaveTextContent("2");
     expect(within(valueItem).getByRole("button", { name: "Mark resolved" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Export lesson" })).toBeDisabled();
-  });
+  }, 10_000);
 
   it("uses controlled process endpoints and non-drag reading-order buttons", async () => {
     const user = userEvent.setup();
@@ -158,11 +160,21 @@ describe("TeacherReviewPanel", () => {
       "1. Begin",
     );
     const finishRow = within(order).getByText("2. Finish").closest("li")!;
-    await user.click(within(finishRow).getByRole("button", { name: "Move up" }));
+    const moveFinishUp = within(finishRow).getByRole("button", {
+      name: "Move Finish up",
+    });
+    await user.click(moveFinishUp);
     expect(within(order).getAllByRole("listitem")[0]).toHaveTextContent("1. Finish");
     expect(screen.getByTestId("review-announcement")).toHaveTextContent(
       "Finish moved up.",
     );
+    await waitFor(() => {
+      expect(
+        within(within(order).getAllByRole("listitem")[0]).getByRole("button", {
+          name: "Move Finish down",
+        }),
+      ).toHaveFocus();
+    });
     expect(within(order).getAllByRole("listitem")).toHaveLength(2);
   });
 

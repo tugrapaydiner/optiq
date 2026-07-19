@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type Ref } from "react";
+import { useRef, useState, type Ref } from "react";
 
 import type { ChartLesson } from "@/lib/contracts/chart";
 import type { ReviewItem } from "@/lib/contracts/common";
@@ -140,6 +140,7 @@ function FieldInput<TLesson extends ReviewLesson>({
   const errorId = `${id}-error`;
   const shared = {
     "aria-describedby": error ? errorId : undefined,
+    "aria-invalid": error ? true : undefined,
     id,
     name: id,
     value: inputValue,
@@ -251,6 +252,9 @@ function ReviewItemCard<TLesson extends ReviewLesson>({
                 ? `${fieldId}-error`
                 : undefined
             }
+            aria-invalid={
+              state.fieldErrors[item.targetPath] ? true : undefined
+            }
             id={fieldId}
             onChange={(event) => {
               const next = updateProcessEdgeEndpoint(
@@ -355,10 +359,28 @@ function ProcessStructureEditor({
   onChange: (state: TeacherReviewState<ProcessLesson>) => void;
   state: TeacherReviewState<ProcessLesson>;
 }) {
+  const moveButtonRefs = useRef(
+    new Map<string, { down: HTMLButtonElement | null; up: HTMLButtonElement | null }>(),
+  );
   const nodeById = new Map(state.draft.nodes.map((node) => [node.id, node]));
   const originalNodeById = new Map(
     state.original.nodes.map((node) => [node.id, node]),
   );
+  const moveNode = (nodeId: string, direction: "down" | "up") => {
+    const label = nodeById.get(nodeId)?.label ?? "Node";
+    onChange(moveReadingOrder(state, nodeId, direction));
+    onAnnounce(`${label} moved ${direction}.`);
+    requestAnimationFrame(() => {
+      const buttons = moveButtonRefs.current.get(nodeId);
+      const sameDirection = buttons?.[direction];
+      const reverseDirection = buttons?.[direction === "up" ? "down" : "up"];
+      if (sameDirection && !sameDirection.disabled) {
+        sameDirection.focus();
+      } else {
+        reverseDirection?.focus();
+      }
+    });
+  };
   return (
     <details className="review-details">
       <summary>Review connections and reading order</summary>
@@ -382,6 +404,7 @@ function ProcessStructureEditor({
                     aria-describedby={
                       state.fieldErrors[path] ? `${id}-error` : undefined
                     }
+                    aria-invalid={state.fieldErrors[path] ? true : undefined}
                     id={id}
                     onChange={(event) =>
                       onChange(
@@ -428,22 +451,34 @@ function ProcessStructureEditor({
               </span>
               <span className="review-order-actions">
                 <button
+                  aria-label={`Move ${nodeById.get(nodeId)?.label ?? "node"} up`}
                   className="text-action"
                   disabled={index === 0}
-                  onClick={() => {
-                    onChange(moveReadingOrder(state, nodeId, "up"));
-                    onAnnounce(`${nodeById.get(nodeId)?.label} moved up.`);
+                  onClick={() => moveNode(nodeId, "up")}
+                  ref={(button) => {
+                    const buttons = moveButtonRefs.current.get(nodeId) ?? {
+                      down: null,
+                      up: null,
+                    };
+                    buttons.up = button;
+                    moveButtonRefs.current.set(nodeId, buttons);
                   }}
                   type="button"
                 >
                   Move up
                 </button>
                 <button
+                  aria-label={`Move ${nodeById.get(nodeId)?.label ?? "node"} down`}
                   className="text-action"
                   disabled={index === state.draft.readingOrder.length - 1}
-                  onClick={() => {
-                    onChange(moveReadingOrder(state, nodeId, "down"));
-                    onAnnounce(`${nodeById.get(nodeId)?.label} moved down.`);
+                  onClick={() => moveNode(nodeId, "down")}
+                  ref={(button) => {
+                    const buttons = moveButtonRefs.current.get(nodeId) ?? {
+                      down: null,
+                      up: null,
+                    };
+                    buttons.down = button;
+                    moveButtonRefs.current.set(nodeId, buttons);
                   }}
                   type="button"
                 >

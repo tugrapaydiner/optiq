@@ -245,6 +245,7 @@ describe("ChartLessonView", () => {
     expect(screen.getByTestId("audio-announcement")).toHaveTextContent(
       "Playback stopped.",
     );
+    expect(play).toHaveFocus();
   });
 
   it("restarts without overlap, completes quietly, and stops on series change", async () => {

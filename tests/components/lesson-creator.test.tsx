@@ -277,6 +277,10 @@ describe("LessonCreator", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Choose a PNG, JPEG, or WebP image.",
     );
+    expect(screen.getByLabelText("Image file")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(screen.getByRole("button", { name: "Analyze source" })).toBeDisabled();
     expect(screen.getByText(/opaque functional session cookie/i)).toBeVisible();
     expect(screen.getByText(/OpenAI's current API data controls apply/i)).toBeVisible();

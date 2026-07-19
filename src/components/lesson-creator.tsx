@@ -535,9 +535,13 @@ export function LessonCreator({
           <label className="visually-hidden" htmlFor="visual-file">
             Image file
           </label>
+          <p className="visually-hidden" id="upload-help">
+            PNG, JPEG, or WebP. Up to {formatUploadLimit(maxUploadBytes)}.
+          </p>
           <input
             accept="image/png,image/jpeg,image/webp"
             aria-describedby={`upload-help${fileError ? " upload-error" : ""}`}
+            aria-invalid={fileError ? true : undefined}
             className="visually-hidden"
             id="visual-file"
             onChange={onFileChange}
@@ -585,7 +589,7 @@ export function LessonCreator({
               </span>
               <div className="upload-copy">
                 <strong>Drop an image here</strong>
-                <span id="upload-help">
+                <span>
                   PNG, JPEG, or WebP · Up to {formatUploadLimit(maxUploadBytes)}
                 </span>
               </div>

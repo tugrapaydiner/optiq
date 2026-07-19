@@ -95,6 +95,7 @@ function PointExplorer({
   const [audioAnnouncement, setAudioAnnouncement] = useState("");
   const [playbackState, setPlaybackState] = useState<PlaybackState>("idle");
   const audioPlayerRef = useRef<AudioPlayer | null>(null);
+  const playButtonRef = useRef<HTMLButtonElement | null>(null);
   const playbackGenerationRef = useRef(0);
   const series = lesson.series[seriesIndex]!;
   const currentText = currentPointText(series, pointIndex, lesson.yAxis.unit);
@@ -116,6 +117,7 @@ function PointExplorer({
     if (wasPlaying) {
       setPlaybackState("stopped");
       setAudioAnnouncement("Playback stopped.");
+      playButtonRef.current?.focus();
     }
   }
 
@@ -260,6 +262,7 @@ function PointExplorer({
             aria-label={isPlaying ? "Restart series" : "Play series"}
             className="button button-primary"
             onClick={() => void playSeries()}
+            ref={playButtonRef}
             type="button"
           >
             {isPlaying ? "Restart series" : "Play series"}
